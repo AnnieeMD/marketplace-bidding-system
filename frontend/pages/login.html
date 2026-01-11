@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход / Регистрация</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: white;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            display: flex;
+            width: 100%;
+            max-width: 1200px;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+            min-height: 600px;
+        }
+
+        .form-section {
+            flex: 1;
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .welcome-section {
+            flex: 1;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 60px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 40px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 15px 20px;
+            border: none;
+            background: #f5f5f5;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.3s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            background: #ebebeb;
+            transform: translateY(-2px);
+        }
+
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(17, 153, 142, 0.3);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .welcome-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+
+        .welcome-section p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 40px;
+            opacity: 0.95;
+        }
+
+        .switch-text {
+            font-size: 1rem;
+        }
+
+        .switch-text a {
+            color: white;
+            text-decoration: none;
+            font-weight: 600;
+            border-bottom: 2px solid white;
+            padding-bottom: 2px;
+            transition: all 0.3s;
+        }
+
+        .switch-text a:hover {
+            opacity: 0.8;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .error-message {
+            background: #fee;
+            color: #c33;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        .success-message {
+            background: #efe;
+            color: #3c3;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .welcome-section {
+                order: -1;
+                padding: 40px 30px;
+            }
+
+            .form-section {
+                padding: 40px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="form-section">
+            <!-- Login Form -->
+            <div id="loginForm">
+                <h1>Вход</h1>
+                
+                <div id="loginMessage"></div>
+                
+                <div class="input-group">
+                    <input type="email" placeholder="Имейл" id="loginEmail" required>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" placeholder="Парола" id="loginPassword" required>
+                </div>
+
+                <button class="btn btn-primary" id="loginBtn" onclick="handleLogin()">Влез</button>
+            </div>
+
+            <!-- Register Form -->
+            <div id="registerForm" class="hidden">
+                <h1>Регистрация</h1>
+                
+                <div id="registerMessage"></div>
+                
+                <div class="input-group">
+                    <input type="text" placeholder="Име и Фамилия" id="regName" required>
+                </div>
+
+                <div class="input-group">
+                    <input type="email" placeholder="Имейл" id="regEmail" required>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" placeholder="Потребителско име" id="regUsername" required>
+                </div>
+
+                <div class="input-group">
+                    <input type="password" placeholder="Парола (мин. 6 символа)" id="regPassword" required>
+                </div>
+
+                <button class="btn btn-primary" id="registerBtn" onclick="handleRegister()">Регистрирай се</button>
+            </div>
+        </div>
+
+        <div class="welcome-section">
+            <div id="loginWelcome">
+                <h2>Добре дошли обратно!</h2>
+                <p>Радваме се да ви видим отново! Влезте в профила си, за да продължите.</p>
+                <div class="switch-text">
+                    Нямате акаунт? <a href="#" onclick="switchToRegister(); return false;">Регистрирайте се</a>
+                </div>
+            </div>
+
+            <div id="registerWelcome" class="hidden">
+                <h2>Здравейте!</h2>
+                <p>Въведете вашите данни и започнете да търгувате с нас.</p>
+                <div class="switch-text">
+                    Вече имате акаунт? <a href="#" onclick="switchToLogin(); return false;">Влезте тук</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchToRegister() {
+            document.getElementById('loginForm').classList.add('hidden');
+            document.getElementById('registerForm').classList.remove('hidden');
+            document.getElementById('loginWelcome').classList.add('hidden');
+            document.getElementById('registerWelcome').classList.remove('hidden');
+            clearMessages();
+        }
+
+        function switchToLogin() {
+            document.getElementById('loginForm').classList.remove('hidden');
+            document.getElementById('registerForm').classList.add('hidden');
+            document.getElementById('loginWelcome').classList.remove('hidden');
+            document.getElementById('registerWelcome').classList.add('hidden');
+            clearMessages();
+        }
+
+        function clearMessages() {
+            document.getElementById('loginMessage').innerHTML = '';
+            document.getElementById('registerMessage').innerHTML = '';
+        }
+
+        function showMessage(elementId, message, isError = true) {
+            const messageDiv = document.getElementById(elementId);
+            messageDiv.innerHTML = `<div class="${isError ? 'error-message' : 'success-message'}">${message}</div>`;
+        }
+
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const btn = document.getElementById('loginBtn');
+            
+            if (!email || !password) {
+                showMessage('loginMessage', 'Моля, попълнете всички полета!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Зареждане...';
+
+            try {
+                const response = await fetch('login.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('loginMessage', data.message, false);
+                    setTimeout(() => {
+                        window.location.href = 'dashboard.php';
+                    }, 1000);
+                } else {
+                    showMessage('loginMessage', data.message);
+                    btn.disabled = false;
+                    btn.textContent = 'Влез';
+                }
+            } catch (error) {
+                showMessage('loginMessage', 'Грешка при свързване със сървъра!');
+                btn.disabled = false;
+                btn.textContent = 'Влез';
+            }
+        }
+
+        async function handleRegister() {
+            const name = document.getElementById('regName').value.trim();
+            const email = document.getElementById('regEmail').value.trim();
+            const username = document.getElementById('regUsername').value.trim();
+            const password = document.getElementById('regPassword').value;
+            const btn = document.getElementById('registerBtn');
+            
+            if (!name || !email || !username || !password) {
+                showMessage('registerMessage', 'Моля, попълнете всички полета!');
+                return;
+            }
+
+            if (password.length < 6) {
+                showMessage('registerMessage', 'Паролата трябва да е поне 6 символа!');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Зареждане...';
+
+            try {
+                const response = await fetch('register.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name, email, username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showMessage('registerMessage', data.message + ' Пренасочване към вход...', false);
+                    setTimeout(() => {
+                        switchToLogin();
+                        document.getElementById('loginEmail').value = email;
+                    }, 2000);
+                } else {
+                    showMessage('registerMessage', data.message);
+                    btn.disabled = false;
+                    btn.textContent = 'Регистрирай се';
+                }
+            } catch (error) {
+                showMessage('registerMessage', 'Грешка при свързване със сървъра!');
+                btn.disabled = false;
+                btn.textContent = 'Регистрирай се';
+            }
+        }
+
+        // Проверка дали потребителят е вече влязъл
+        window.addEventListener('load', async () => {
+            try {
+                const response = await fetch('check_session.php');
+                const data = await response.json();
+                
+                if (data.logged_in) {
+                    window.location.href = 'dashboard.php';
+                }
+            } catch (error) {
+                console.log('Не е открита активна сесия');
+            }
+        });
+
+        // Enter key support
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (!document.getElementById('loginForm').classList.contains('hidden')) {
+                    handleLogin();
+                } else {
+                    handleRegister();
+                }
+            }
+        });
+    </script>
+</body>
+</html>
