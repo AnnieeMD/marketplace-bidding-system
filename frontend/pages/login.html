@@ -280,7 +280,7 @@
             btn.textContent = 'Зареждане...';
 
             try {
-                const response = await fetch('login.php', {
+                const response = await fetch('/backend/login.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -293,7 +293,7 @@
                 if (data.success) {
                     showMessage('loginMessage', data.message, false);
                     setTimeout(() => {
-                        window.location.href = 'dashboard.php';
+                        window.location.href = '/backend/dashboard.php';
                     }, 1000);
                 } else {
                     showMessage('loginMessage', data.message);
@@ -328,7 +328,7 @@
             btn.textContent = 'Зареждане...';
 
             try {
-                const response = await fetch('register.php', {
+                const response = await fetch('/backend/register.php', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -359,11 +359,11 @@
         // Проверка дали потребителят е вече влязъл
         window.addEventListener('load', async () => {
             try {
-                const response = await fetch('check_session.php');
+                const response = await fetch('/backend/check_session.php');
                 const data = await response.json();
                 
                 if (data.logged_in) {
-                    window.location.href = 'dashboard.php';
+                    window.location.href = '/backend/dashboard.php';
                 }
             } catch (error) {
                 console.log('Не е открита активна сесия');
