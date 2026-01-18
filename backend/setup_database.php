@@ -1,25 +1,35 @@
 <?php
-// setup_database.php
-require_once 'config.php';
+// setup_database.php - Database initialization script for PostgreSQL
+
+header('Content-Type: application/json');
 
 try {
-    $pdo = getDBConnection();
+    // Connect to PostgreSQL
+    $pdo = new PDO("pgsql:host=localhost;port=5432;dbname=marketplace-bidding-system", 'admin', 'admin');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
-    // SQL за създаване на таблица users
-    $sql = "CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        full_name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        username VARCHAR(100) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        last_login TIMESTAMP NULL
-    )";
+    // Read and execute the SQL schema
+    $sql = file_get_contents(__DIR__ . '/schema.sql');
     
+    // Execute the entire script at once for PostgreSQL
     $pdo->exec($sql);
-    echo "Таблицата 'users' е създадена успешно!";
     
-} catch(PDOException $e) {
-    echo "Грешка: " . $e->getMessage();
+    echo json_encode([
+        'success' => true,
+        'message' => 'Database setup completed successfully! Sample data has been added.'
+    ]);
+    
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Database setup failed: ' . $e->getMessage()
+    ]);
+} catch (Exception $e) {
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'Setup failed: ' . $e->getMessage()
+    ]);
 }
 ?>

@@ -1,8 +1,7 @@
 <?php
-// login.php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // Handle preflight requests
@@ -13,55 +12,57 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 require_once 'config.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = json_decode(file_get_contents('php://input'), true);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    exit();
+}
+
+try {
+    $input = json_decode(file_get_contents('php://input'), true);
     
-    $email = trim($data['email'] ?? '');
-    $password = $data['password'] ?? '';
-    
-    // Валидация
-    if (empty($email) || empty($password)) {
-        echo json_encode(['success' => false, 'message' => 'Моля, попълнете всички полета!']);
-        exit;
+    if (!$input || !isset($input['username']) || !isset($input['password'])) {
+        echo json_encode(['success' => false, 'message' => 'Потребителско име и парола са задължителни']);
+        exit();
     }
     
-    try {
-        $pdo = getDBConnection();
-        
-        // Търсене на потребителя
-        $stmt = $pdo->prepare("SELECT id, full_name, email, username, password FROM users WHERE email = ?");
-        $stmt->execute([$email]);
-        $user = $stmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($user && password_verify($password, $user['password'])) {
-            // Успешен вход
-            $_SESSION['user_id'] = $user['id'];
-            $_SESSION['username'] = $user['username'];
-            $_SESSION['email'] = $user['email'];
-            $_SESSION['full_name'] = $user['full_name'];
-            
-            // Обновяване на последен вход
-            $updateStmt = $pdo->prepare("UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?");
-            $updateStmt->execute([$user['id']]);
-            
-            echo json_encode([
-                'success' => true, 
-                'message' => 'Успешен вход!',
-                'user' => [
-                    'id' => $user['id'],
-                    'username' => $user['username'],
-                    'email' => $user['email'],
-                    'full_name' => $user['full_name']
-                ]
-            ]);
-        } else {
-            echo json_encode(['success' => false, 'message' => 'Невалиден имейл или парола!']);
-        }
-        
-    } catch(PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Грешка при вход: ' . $e->getMessage()]);
+    $username = trim($input['username']);
+    $password = $input['password'];
+    
+    if (empty($username) || empty($password)) {
+        echo json_encode(['success' => false, 'message' => 'Потребителско име и парола не могат да бъдат празни']);
+        exit();
     }
-} else {
-    echo json_encode(['success' => false, 'message' => 'Невалидна заявка!']);
+    
+    $pdo = getDBConnection();
+    
+    // Find user by username or email
+    $stmt = $pdo->prepare("SELECT id, username, email, password FROM users WHERE username = ? OR email = ?");
+    $stmt->execute([$username, $username]);
+    $user = $stmt->fetch();
+    
+    if ($user && password_verify($password, $user['password'])) {
+        // Login successful
+        $_SESSION['user_id'] = $user['id'];
+        $_SESSION['username'] = $user['username'];
+        $_SESSION['email'] = $user['email'];
+        
+        echo json_encode([
+            'success' => true,
+            'message' => 'Входът бе успешен',
+            'user' => [
+                'id' => $user['id'],
+                'username' => $user['username'],
+                'email' => $user['email']
+            ]
+        ]);
+    } else {
+        echo json_encode(['success' => false, 'message' => 'Невалидно потребителско име или парола.']);
+    }
+    
+} catch (Exception $e) {
+    error_log("Login error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Входът не бе успешен. Моля, опитайте отново.']);
 }
 ?>

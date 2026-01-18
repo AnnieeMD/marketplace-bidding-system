@@ -1,8 +1,7 @@
 <?php
-// register.php
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
 // Handle preflight requests
@@ -13,64 +12,82 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 
 require_once 'config.php';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Вземане на данните
-    $data = json_decode(file_get_contents('php://input'), true);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['success' => false, 'message' => 'Method not allowed']);
+    exit();
+}
+
+try {
+    $input = json_decode(file_get_contents('php://input'), true);
     
-    $fullName = trim($data['name'] ?? '');
-    $email = trim($data['email'] ?? '');
-    $username = trim($data['username'] ?? '');
-    $password = $data['password'] ?? '';
-    
-    // Валидация
-    $errors = [];
-    
-    if (empty($fullName)) {
-        $errors[] = "Името е задължително!";
+    if (!$input || !isset($input['username']) || !isset($input['email']) || !isset($input['password'])) {
+        echo json_encode(['success' => false, 'message' => 'Username, email, and password required']);
+        exit();
     }
     
-    if (empty($email) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        $errors[] = "Невалиден имейл адрес!";
+    $username = trim($input['username']);
+    $email = trim($input['email']);
+    $password = $input['password'];
+    
+    // Basic validation
+    if (empty($username) || empty($email) || empty($password)) {
+        echo json_encode(['success' => false, 'message' => 'All fields are required']);
+        exit();
     }
     
-    if (empty($username) || strlen($username) < 3) {
-        $errors[] = "Потребителското име трябва да е поне 3 символа!";
+    if (strlen($username) < 3) {
+        echo json_encode(['success' => false, 'message' => 'Username must be at least 3 characters long']);
+        exit();
     }
     
-    if (empty($password) || strlen($password) < 6) {
-        $errors[] = "Паролата трябва да е поне 6 символа!";
+    if (strlen($password) < 6) {
+        echo json_encode(['success' => false, 'message' => 'Password must be at least 6 characters long']);
+        exit();
     }
     
-    if (!empty($errors)) {
-        echo json_encode(['success' => false, 'message' => implode(' ', $errors)]);
-        exit;
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid email format']);
+        exit();
     }
     
-    try {
-        $pdo = getDBConnection();
-        
-        // Проверка дали съществува имейл или потребителско име
-        $stmt = $pdo->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
-        $stmt->execute([$email, $username]);
-        
-        if ($stmt->fetch()) {
-            echo json_encode(['success' => false, 'message' => 'Имейлът или потребителското име вече съществуват!']);
-            exit;
-        }
-        
-        // Хеширане на паролата
-        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-        
-        // Вмъкване в базата данни
-        $stmt = $pdo->prepare("INSERT INTO users (full_name, email, username, password) VALUES (?, ?, ?, ?)");
-        $stmt->execute([$fullName, $email, $username, $hashedPassword]);
-        
-        echo json_encode(['success' => true, 'message' => 'Регистрацията е успешна!']);
-        
-    } catch(PDOException $e) {
-        echo json_encode(['success' => false, 'message' => 'Грешка при регистрация: ' . $e->getMessage()]);
+    $pdo = getDBConnection();
+    
+    // Check if username or email already exists
+    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
+    $stmt->execute([$username, $email]);
+    
+    if ($stmt->fetch()) {
+        echo json_encode(['success' => false, 'message' => 'Username or email already exists']);
+        exit();
     }
-} else {
-    echo json_encode(['success' => false, 'message' => 'Невалидна заявка!']);
+    
+    // Hash password and create user
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+    
+    $stmt = $pdo->prepare("INSERT INTO users (username, email, password, created_at) VALUES (?, ?, ?, NOW())");
+    $stmt->execute([$username, $email, $hashedPassword]);
+    
+    $userId = $pdo->lastInsertId();
+    
+    // Auto-login after registration
+    $_SESSION['user_id'] = $userId;
+    $_SESSION['username'] = $username;
+    $_SESSION['email'] = $email;
+    
+    echo json_encode([
+        'success' => true,
+        'message' => 'Registration successful',
+        'user' => [
+            'id' => $userId,
+            'username' => $username,
+            'email' => $email
+        ]
+    ]);
+    
+} catch (Exception $e) {
+    error_log("Registration error: " . $e->getMessage());
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Registration failed. Please try again.']);
 }
 ?>
