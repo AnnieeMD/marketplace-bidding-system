@@ -2,6 +2,9 @@
 // config.php
 session_start();
 
+// Set timezone to match database
+date_default_timezone_set('Europe/Sofia');
+
 // Настройки за PostgreSQL
 define('DB_HOST', 'localhost');
 define('DB_PORT', '5432');

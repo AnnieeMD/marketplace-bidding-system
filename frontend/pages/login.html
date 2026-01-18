@@ -293,7 +293,7 @@
                 if (data.success) {
                     showMessage('loginMessage', data.message, false);
                     setTimeout(() => {
-                        window.location.href = '/backend/dashboard.php';
+                        window.location.href = '/frontend/pages/index.html';
                     }, 1000);
                 } else {
                     showMessage('loginMessage', data.message);
@@ -363,7 +363,7 @@
                 const data = await response.json();
                 
                 if (data.logged_in) {
-                    window.location.href = '/backend/dashboard.php';
+                    window.location.href = '/frontend/pages/index.html';
                 }
             } catch (error) {
                 console.log('Не е открита активна сесия');
