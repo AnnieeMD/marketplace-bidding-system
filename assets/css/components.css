@@ -1,0 +1,252 @@
+/* Component Styles - Modals, Toasts, etc. */
+
+/* Toast Notification System */
+.toast-container { 
+    position: fixed; 
+    top: 20px; 
+    right: 20px; 
+    z-index: 1000; 
+}
+
+.toast { 
+    background: white; 
+    border-radius: 8px; 
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
+    margin-bottom: 10px; 
+    padding: 15px 20px; 
+    max-width: 400px; 
+    border-left: 4px solid; 
+    transform: translateX(100%); 
+    opacity: 0; 
+    transition: all 0.3s ease; 
+}
+
+.toast.show { 
+    transform: translateX(0); 
+    opacity: 1; 
+}
+
+.toast.success { 
+    border-color: #28a745; 
+}
+
+.toast.error { 
+    border-color: #dc3545; 
+}
+
+.toast.warning { 
+    border-color: #ffc107; 
+}
+
+.toast.info { 
+    border-color: #17a2b8; 
+}
+
+.toast-header { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    margin-bottom: 5px; 
+}
+
+.toast-title { 
+    font-weight: bold; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+}
+
+.toast-title i { 
+    font-size: 1.1rem; 
+}
+
+.toast-close { 
+    background: none; 
+    border: none; 
+    font-size: 1.2rem; 
+    cursor: pointer; 
+    opacity: 0.6; 
+}
+
+.toast-close:hover { 
+    opacity: 1; 
+}
+
+.toast-body { 
+    color: #666; 
+}
+
+.toast.success .toast-title { 
+    color: #28a745; 
+}
+
+.toast.error .toast-title { 
+    color: #dc3545; 
+}
+
+.toast.warning .toast-title { 
+    color: #ff8c00; 
+}
+
+.toast.info .toast-title { 
+    color: #17a2b8; 
+}
+
+/* Auction Details Modal */
+.modal-overlay { 
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%; 
+    background: rgba(0,0,0,0.5); 
+    z-index: 2000; 
+    display: none; 
+    align-items: center; 
+    justify-content: center; 
+}
+
+.modal { 
+    background: white; 
+    border-radius: 12px; 
+    max-width: 600px; 
+    width: 90%; 
+    max-height: 80vh; 
+    overflow-y: auto; 
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+}
+
+.modal-header { 
+    padding: 20px 20px 0; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    border-bottom: 1px solid #eee; 
+}
+
+.modal-title { 
+    font-size: 1.3rem; 
+    font-weight: bold; 
+}
+
+.modal-close { 
+    background: none; 
+    border: none; 
+    font-size: 1.5rem; 
+    cursor: pointer; 
+    padding: 5px; 
+}
+
+.modal-body { 
+    padding: 20px; 
+}
+
+.modal-image { 
+    width: 100%; 
+    height: 200px; 
+    background: #f0f0f0; 
+    border-radius: 8px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    margin-bottom: 15px; 
+}
+
+.modal-price { 
+    font-size: 1.5rem; 
+    color: #11998e; 
+    font-weight: bold; 
+    margin-bottom: 10px; 
+}
+
+.modal-description { 
+    color: #333; 
+    line-height: 1.5; 
+    margin-bottom: 15px; 
+}
+
+.modal-meta { 
+    background: #f8f9fa; 
+    padding: 15px; 
+    border-radius: 8px; 
+    margin-bottom: 15px; 
+}
+
+.modal-meta-item { 
+    margin-bottom: 8px; 
+}
+
+.modal-meta-item:last-child { 
+    margin-bottom: 0; 
+}
+
+.modal-meta-label { 
+    font-weight: bold; 
+    color: #555; 
+}
+
+.modal-bidders-list { 
+    margin-top: 8px; 
+}
+
+.modal-bidder-item { 
+    background: #fff; 
+    padding: 8px 12px; 
+    border-radius: 6px; 
+    margin-bottom: 6px; 
+    font-size: 0.95rem; 
+    color: #333; 
+    border: 1px solid #e9ecef; 
+    border-left: 3px solid #11998e; 
+}
+
+.modal-bidder-item.winner { 
+    background: #e8f5e8; 
+    border-left-color: #28a745; 
+    font-weight: bold; 
+}
+
+.modal-bidders-container { 
+    background: #f8f9fa; 
+    padding: 15px; 
+    border-radius: 8px; 
+    margin-bottom: 15px; 
+    border: 2px solid #e9ecef; 
+}
+
+.modal-bidders-title { 
+    font-size: 1.1rem; 
+    font-weight: bold; 
+    color: #11998e; 
+    margin-bottom: 10px; 
+    display: flex; 
+    align-items: center; 
+    gap: 8px; 
+}
+
+.modal-actions { 
+    border-top: 1px solid #eee; 
+    padding: 20px; 
+}
+
+/* Responsive Design for Components */
+@media (max-width: 768px) { 
+    .toast-container { 
+        top: 10px; 
+        right: 10px; 
+        left: 10px; 
+    }
+    .toast { 
+        max-width: none; 
+    }
+    .modal {
+        width: 95%;
+        max-height: 90vh;
+    }
+    .modal-header {
+        padding: 15px;
+    }
+    .modal-body {
+        padding: 15px;
+    }
+}
