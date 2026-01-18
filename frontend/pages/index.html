@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auction Marketplace</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/components.css">
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="logo"><i class="fas fa-store"></i> Marketplace</div>
+            <div class="nav-links">
+                <a href="#" id="loginLink">Вход</a>
+                <a href="create_auction.html" id="createAuctionLink" class="hidden"><i class="fas fa-plus"></i> Създай търг</a>
+                <a href="#" id="userMenu" class="hidden" onclick="showMyProfile(); return false;"><i class="fas fa-user"></i> <span id="userName"></span></a>
+                <a href="#" id="logoutLink" class="hidden">Изход</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="search-section">
+        <div class="container">
+            <div class="search-form">
+                <input type="text" class="search-input" id="searchInput" placeholder="Търсене на търгове...">
+                <select class="category-select" id="categorySelect">
+                    <option value="">Всички категории</option>
+                    <option value="electronics">Електроника</option>
+                    <option value="fashion">Мода</option>
+                    <option value="home">Дом и градина</option>
+                    <option value="sports">Спорт</option>
+                    <option value="cars">Автомобили</option>
+                    <option value="others">Други</option>
+                </select>
+                <select class="category-select" id="priceSort">
+                    <option value="">Сортиране по цена</option>
+                    <option value="asc">Цена: ниска към висока</option>
+                    <option value="desc">Цена: висока към ниска</option>
+                </select>
+                <button class="search-btn" onclick="searchAuctions()"><i class="fas fa-search"></i> Търси</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div id="auctionsContainer">
+            <div class="loading"><i class="fas fa-spinner fa-spin"></i> Зареждане на търгове...</div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- JavaScript Files -->
+    <script src="/assets/js/utils.js"></script>
+    <script src="/assets/js/toast.js"></script>
+    <script src="/assets/js/main.js"></script>
+</body>
+</html>

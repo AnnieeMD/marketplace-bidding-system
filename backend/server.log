@@ -1,0 +1,34 @@
+[Sun Jan 11 14:42:21 2026] PHP 8.5.1 Development Server (http://localhost:8000) started
+[Sun Jan 11 14:42:28 2026] [::1]:51402 Accepted
+[Sun Jan 11 14:42:28 2026] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /Users/I765186/University/WEB/Project/marketplace-bidding-system/backend/config.php on line 3) in /Users/I765186/University/WEB/Project/marketplace-bidding-system/backend/auctions.php on line 15
+[Sun Jan 11 14:42:28 2026] [::1]:51402 [200]: GET /auctions.php
+[Sun Jan 11 14:42:28 2026] [::1]:51402 Closing
+[Sun Jan 11 14:43:28 2026] [::1]:51543 Accepted
+[Sun Jan 11 14:43:28 2026] [::1]:51544 Accepted
+[Sun Jan 11 14:43:28 2026] [::1]:51544 [200]: GET /check_session.php
+[Sun Jan 11 14:43:28 2026] [::1]:51544 Closing
+[Sun Jan 11 14:43:28 2026] [::1]:51545 Accepted
+[Sun Jan 11 14:43:28 2026] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /Users/I765186/University/WEB/Project/marketplace-bidding-system/backend/config.php on line 3) in /Users/I765186/University/WEB/Project/marketplace-bidding-system/backend/auctions.php on line 15
+[Sun Jan 11 14:43:28 2026] [::1]:51545 [200]: GET /auctions.php?search=&category=
+[Sun Jan 11 14:43:28 2026] [::1]:51545 Closing
+[Sun Jan 11 14:43:30 2026] [::1]:51565 Accepted
+[Sun Jan 11 14:43:30 2026] [::1]:51565 [200]: GET /check_session.php
+[Sun Jan 11 14:43:30 2026] [::1]:51565 Closing
+[Sun Jan 11 14:43:30 2026] [::1]:51566 Accepted
+[Sun Jan 11 14:43:30 2026] PHP Notice:  session_start(): Ignoring session_start() because a session is already active (started from /Users/I765186/University/WEB/Project/marketplace-bidding-system/backend/config.php on line 3) in /Users/I765186/University/WEB/Project/marketplace-bidding-system/backend/auctions.php on line 15
+[Sun Jan 11 14:43:30 2026] [::1]:51566 [200]: GET /auctions.php?search=&category=
+[Sun Jan 11 14:43:30 2026] [::1]:51566 Closing
+[Sun Jan 11 14:44:59 2026] [::1]:51543 Closed without sending a request; it was probably just an unused speculative preconnection
+[Sun Jan 11 14:44:59 2026] [::1]:51543 Closing
+[Sun Jan 11 14:45:07 2026] [::1]:51832 Accepted
+[Sun Jan 11 14:45:07 2026] [::1]:51832 [404]: GET /frontend/pages/index.html - No such file or directory
+[Sun Jan 11 14:45:07 2026] [::1]:51832 Closing
+[Sun Jan 11 14:45:10 2026] [::1]:51845 Accepted
+[Sun Jan 11 14:45:10 2026] [::1]:51845 [404]: GET /frontend/pages/index.html - No such file or directory
+[Sun Jan 11 14:45:10 2026] [::1]:51845 Closing
+[Sun Jan 11 14:45:26 2026] [::1]:51881 Accepted
+[Sun Jan 11 14:45:26 2026] [::1]:51881 [200]: GET /auctions.php
+[Sun Jan 11 14:45:26 2026] [::1]:51881 Closing
+[Sun Jan 11 14:45:29 2026] [::1]:51885 Accepted
+[Sun Jan 11 14:45:29 2026] [::1]:51885 [404]: GET /frontend/pages/index.html - No such file or directory
+[Sun Jan 11 14:45:29 2026] [::1]:51885 Closing

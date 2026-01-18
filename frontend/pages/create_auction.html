@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Създай търг - Marketplace</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/assets/css/main.css">
+    <link rel="stylesheet" href="/assets/css/create-auction.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; }
+        .container { max-width: 800px; margin: 0 auto; padding: 0 20px; }
+        .header { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 1rem 0; }
+        .header .container { display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: bold; }
+        .nav-links { display: flex; gap: 15px; }
+        .nav-links a { color: white; text-decoration: none; padding: 5px 10px; }
+        .main-content { background: white; margin: 2rem auto; padding: 2rem; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .form-title { font-size: 2rem; margin-bottom: 2rem; color: #333; text-align: center; }
+        .form-group { margin-bottom: 1.5rem; }
+        .form-label { display: block; margin-bottom: 0.5rem; font-weight: bold; color: #555; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 6px; font-size: 1rem; transition: border-color 0.3s; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: #11998e; }
+        .form-textarea { min-height: 120px; resize: vertical; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .form-checkbox { display: flex; align-items: center; gap: 0.5rem; margin-top: 1rem; }
+        .form-checkbox input[type="checkbox"] { width: auto; }
+        .submit-btn { width: 100%; background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); color: white; padding: 15px; border: none; border-radius: 6px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: opacity 0.3s; }
+        .submit-btn:hover { opacity: 0.9; }
+        .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        .back-link { display: inline-block; margin-bottom: 1rem; color: #11998e; text-decoration: none; }
+        .back-link:hover { text-decoration: underline; }
+        .loading { display: none; text-align: center; padding: 20px; }
+        .error { color: #dc3545; margin-top: 0.5rem; font-size: 0.9rem; }
+        .hidden { display: none; }
+        
+        /* Toast Notification System */
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; }
+        .toast { background: white; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); margin-bottom: 10px; padding: 15px 20px; max-width: 400px; border-left: 4px solid; transform: translateX(100%); opacity: 0; transition: all 0.3s ease; }
+        .toast.show { transform: translateX(0); opacity: 1; }
+        .toast.success { border-color: #28a745; }
+        .toast.error { border-color: #dc3545; }
+        .toast.warning { border-color: #ffc107; }
+        .toast-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 5px; }
+        .toast-title { font-weight: bold; display: flex; align-items: center; gap: 8px; }
+        .toast-close { background: none; border: none; font-size: 1.2rem; cursor: pointer; opacity: 0.6; }
+        .toast-close:hover { opacity: 1; }
+        .toast-body { color: #666; }
+        .toast.success .toast-title { color: #28a745; }
+        .toast.error .toast-title { color: #dc3545; }
+        .toast.warning .toast-title { color: #ff8c00; }
+        
+        @media (max-width: 768px) {
+            .form-row { grid-template-columns: 1fr; }
+            .toast-container { top: 10px; right: 10px; left: 10px; }
+            .toast { max-width: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="container">
+            <div class="logo"><i class="fas fa-store"></i> Marketplace</div>
+            <div class="nav-links">
+                <a href="index.html"><i class="fas fa-home"></i> Начало</a>
+                <a href="#" id="logoutLink">Изход</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="main-content">
+            <a href="index.html" class="back-link"><i class="fas fa-arrow-left"></i> Обратно към търгове</a>
+            <h1 class="form-title">Създай нов търг</h1>
+            
+            <form id="auctionForm">
+                <div class="form-group">
+                    <label for="title" class="form-label">Заглавие *</label>
+                    <input type="text" id="title" name="title" class="form-input" placeholder="Въведете заглавие на търга" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description" class="form-label">Описание *</label>
+                    <textarea id="description" name="description" class="form-textarea" placeholder="Опишете подробно артикула, който продавате" required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="starting_price" class="form-label">Начална цена (лв.) *</label>
+                        <input type="number" id="starting_price" name="starting_price" class="form-input" step="0.01" min="0.01" placeholder="0.00" required>
+                    </div>
+                    <div class="form-group hidden" id="buyNowPriceGroup">
+                        <label for="buy_now_price" class="form-label">Цена "Купи сега" (лв.)</label>
+                        <input type="number" id="buy_now_price" name="buy_now_price" class="form-input" step="0.01" min="0.01" placeholder="Опционално">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="category" class="form-label">Категория *</label>
+                        <select id="category" name="category" class="form-select" required>
+                            <option value="">Изберете категория</option>
+                            <option value="electronics">Електроника</option>
+                            <option value="fashion">Мода</option>
+                            <option value="home">Дом и градина</option>
+                            <option value="sports">Спорт</option>
+                            <option value="cars">Автомобили</option>
+                            <option value="others">Други</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="location" class="form-label">Местоположение</label>
+                        <input type="text" id="location" name="location" class="form-input" placeholder="София, Пловдив, Варна...">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="duration_hours" class="form-label">Продължителност *</label>
+                        <select id="duration_hours" name="duration_hours" class="form-select" required>
+                            <option value="0.1">6 минути (тест)</option>
+                            <option value="0.5">30 минути (тест)</option>
+                            <option value="1">1 час (тест)</option>
+                            <option value="2">2 часа (тест)</option>
+                            <option value="24">1 ден</option>
+                            <option value="48">2 дни</option>
+                            <option value="72">3 дни</option>
+                            <option value="120">5 дни</option>
+                            <option value="168">7 дни</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="auction_type" class="form-label">Тип търг *</label>
+                        <select id="auction_type" name="auction_type" class="form-select" required>
+                            <option value="auction">Само търг</option>
+                            <option value="both">Търг + Купи сега</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="image_url" class="form-label">URL на снимка</label>
+                    <input type="url" id="image_url" name="image_url" class="form-input" placeholder="https://example.com/image.jpg">
+                </div>
+
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fas fa-plus"></i> Създай търг
+                </button>
+            </form>
+
+            <div class="loading" id="loading">
+                <i class="fas fa-spinner fa-spin"></i> Създаване на търг...
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/assets/js/toast.js"></script>
+    <script src="/assets/js/create-auction.js"></script>
+</body>
+</html>
