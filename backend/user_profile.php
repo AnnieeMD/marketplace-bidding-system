@@ -21,13 +21,14 @@ try {
     $createdStmt->execute([$userId]);
     $created = $createdStmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Get won auctions
+    // Get won auctions - auctions where user has the highest bid and auction is ended
     $wonStmt = $pdo->prepare("
         SELECT a.title, b.bid_amount, a.end_time, 
                (SELECT COUNT(*) FROM bids WHERE auction_id = a.id) as total_bidders
         FROM auctions a 
         JOIN bids b ON a.id = b.auction_id 
-        WHERE b.user_id = ? AND b.is_winning = TRUE AND a.status = 'ended'
+        WHERE b.user_id = ? AND a.status = 'ended'
+        AND b.bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = a.id)
         ORDER BY a.end_time DESC LIMIT 5
     ");
     $wonStmt->execute([$userId]);
@@ -35,7 +36,8 @@ try {
     
     // Get recent bidding activity
     $recentBidsStmt = $pdo->prepare("
-        SELECT a.title, b.bid_amount, b.bid_time, b.is_winning, a.status
+        SELECT a.title, b.bid_amount, b.bid_time, a.status,
+               CASE WHEN b.bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = a.id) THEN 1 ELSE 0 END as is_winning
         FROM bids b 
         JOIN auctions a ON b.auction_id = a.id 
         WHERE b.user_id = ? 
@@ -50,8 +52,17 @@ try {
             (SELECT COUNT(*) FROM auctions WHERE user_id = ?) as auctions_created,
             (SELECT COUNT(*) FROM bids WHERE user_id = ?) as total_bids_placed,
             (SELECT COUNT(DISTINCT auction_id) FROM bids WHERE user_id = ?) as auctions_participated,
-            (SELECT COUNT(*) FROM bids b JOIN auctions a ON b.auction_id = a.id WHERE b.user_id = ? AND b.is_winning = TRUE AND a.status = 'ended') as auctions_won,
-            (SELECT COALESCE(SUM(b.bid_amount), 0) FROM bids b JOIN auctions a ON b.auction_id = a.id WHERE b.user_id = ? AND b.is_winning = TRUE AND a.status = 'ended') as total_money_won,
+            (SELECT COUNT(*) FROM (
+                SELECT DISTINCT b.auction_id 
+                FROM bids b 
+                JOIN auctions a ON b.auction_id = a.id 
+                WHERE b.user_id = ? AND a.status = 'ended'
+                AND b.bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = b.auction_id)
+            ) AS won_auctions) as auctions_won,
+            (SELECT COALESCE(SUM(b.bid_amount), 0) FROM bids b 
+             JOIN auctions a ON b.auction_id = a.id 
+             WHERE b.user_id = ? AND a.status = 'ended'
+             AND b.bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = b.auction_id)) as total_money_won,
             (SELECT COALESCE(SUM(starting_price), 0) FROM auctions WHERE user_id = ?) as total_auction_value,
             (SELECT COALESCE(AVG(bid_amount), 0) FROM bids WHERE user_id = ?) as avg_bid_amount
     ");

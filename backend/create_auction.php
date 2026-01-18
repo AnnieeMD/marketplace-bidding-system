@@ -36,7 +36,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $buy_now_price = !empty($input['buy_now_price']) ? floatval($input['buy_now_price']) : null;
         $category = trim($input['category'] ?? '');
         $location = trim($input['location'] ?? '');
-        $auction_type = trim($input['auction_type'] ?? 'auction');
         $duration_hours = floatval($input['duration_hours'] ?? 24);
         $image_url = trim($input['image_url'] ?? '');
         
@@ -71,8 +70,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Insert auction
         $stmt = $pdo->prepare("
-            INSERT INTO auctions (title, description, starting_price, buy_now_price, category, location, auction_type, end_time, image_url, user_id, created_at, updated_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            INSERT INTO auctions (title, description, starting_price, buy_now_price, category, location, end_time, image_url, user_id, created_at, updated_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         ");
         
         $stmt->execute([
@@ -82,7 +81,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $buy_now_price,
             $category,
             $location,
-            $auction_type,
             $end_time,
             $image_url ?: null,
             $_SESSION['user_id']

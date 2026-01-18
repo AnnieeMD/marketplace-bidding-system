@@ -23,8 +23,8 @@ try {
     // Find all auctions that have ended but are still marked as active
     $stmt = $pdo->prepare("
         SELECT a.id, a.title, a.user_id as seller_id, a.starting_price,
-               (SELECT user_id FROM bids WHERE auction_id = a.id AND is_winning = TRUE LIMIT 1) as winner_id,
-               (SELECT bid_amount FROM bids WHERE auction_id = a.id AND is_winning = TRUE LIMIT 1) as winning_bid,
+               (SELECT user_id FROM bids WHERE auction_id = a.id AND bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = a.id) LIMIT 1) as winner_id,
+               (SELECT MAX(bid_amount) FROM bids WHERE auction_id = a.id) as winning_bid,
                (SELECT COUNT(*) FROM bids WHERE auction_id = a.id) as total_bids
         FROM auctions a 
         WHERE a.status = 'active' AND a.end_time <= NOW()
@@ -41,21 +41,8 @@ try {
             $updateStmt = $pdo->prepare("UPDATE auctions SET status = 'ended', updated_at = NOW() WHERE id = ?");
             $updateStmt->execute([$auction['id']]);
             
-            // If there were bids, ensure the highest bid is marked as winning
+            // If there were bids, update final price
             if ($auction['total_bids'] > 0 && $auction['winner_id']) {
-                // Mark all other bids as not winning
-                $bidStmt = $pdo->prepare("UPDATE bids SET is_winning = FALSE WHERE auction_id = ? AND user_id != ?");
-                $bidStmt->execute([$auction['id'], $auction['winner_id']]);
-                
-                // Ensure winner's bid is marked as winning
-                $winStmt = $pdo->prepare("
-                    UPDATE bids 
-                    SET is_winning = TRUE 
-                    WHERE auction_id = ? AND user_id = ? 
-                    AND bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = ?)
-                ");
-                $winStmt->execute([$auction['id'], $auction['winner_id'], $auction['id']]);
-                
                 // Update final price in auction
                 $priceStmt = $pdo->prepare("UPDATE auctions SET current_price = ? WHERE id = ?");
                 $priceStmt->execute([$auction['winning_bid'], $auction['id']]);

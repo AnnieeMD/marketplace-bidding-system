@@ -45,14 +45,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         
         // Get winner information if exists
         $winnerStmt = $pdo->prepare("
-            SELECT u.username, u.full_name, b.bid_amount as winning_bid
+            SELECT u.username, b.bid_amount as winning_bid
             FROM bids b
             JOIN users u ON b.user_id = u.id
-            WHERE b.auction_id = ? AND b.is_winning = TRUE
+            WHERE b.auction_id = ? AND b.bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = ?)
             ORDER BY b.bid_amount DESC, b.bid_time DESC
             LIMIT 1
         ");
-        $winnerStmt->execute([$auctionId]);
+        $winnerStmt->execute([$auctionId, $auctionId]);
         $winner = $winnerStmt->fetch(PDO::FETCH_ASSOC);
         
         // Get total bids count
@@ -67,7 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         
         // Get all bids for this auction
         $bidStmt = $pdo->prepare("
-            SELECT b.bid_amount, b.bid_time, u.username, b.is_winning
+            SELECT b.bid_amount, b.bid_time, u.username, 
+                   CASE WHEN b.bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = b.auction_id) THEN 1 ELSE 0 END as is_winning
             FROM bids b
             JOIN users u ON b.user_id = u.id
             WHERE b.auction_id = ?
@@ -94,7 +95,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             ],
             'winner' => $winner ? [
                 'username' => $winner['username'],
-                'full_name' => $winner['full_name'],
                 'winning_bid' => $winner['winning_bid']
             ] : null,
             'bids' => $bids

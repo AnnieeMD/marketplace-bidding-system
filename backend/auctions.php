@@ -29,15 +29,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
         
         // Build query
-        $sql = "SELECT a.*, u.username, u.full_name,
-                       a.buy_now_price, a.auction_type,
+        $sql = "SELECT a.*, u.username,
                        CASE 
                            WHEN a.end_time < NOW() THEN 'ended'
                            ELSE a.status 
                        END as actual_status,
                        EXTRACT(EPOCH FROM (a.end_time - NOW())) as time_remaining,
                        EXTRACT(EPOCH FROM a.updated_at) as last_updated,
-                       (SELECT COUNT(*) FROM bids b WHERE b.auction_id = a.id) as bid_count,
+                       (SELECT COUNT(*) FROM bids b WHERE b.auction_id = a.id) as total_bids,
                        (SELECT MAX(bid_amount) FROM bids b WHERE b.auction_id = a.id) as highest_bid
                 FROM auctions a 
                 LEFT JOIN users u ON a.user_id = u.id 
@@ -86,16 +85,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         foreach ($auctions as &$auction) {
             $auction['time_remaining'] = max(0, $auction['time_remaining']);
             $auction['current_price'] = $auction['highest_bid'] ?? $auction['starting_price'];
-            $auction['has_bids'] = $auction['bid_count'] > 0;
-            $auction['total_bids'] = $auction['bid_count']; // For compatibility
+            $auction['has_bids'] = $auction['total_bids'] > 0;
             
             // Get top 3 bidders for main page display
             $topBiddersStmt = $pdo->prepare("
-                SELECT u.username, b.bid_amount, b.is_winning
+                SELECT u.username, b.bid_amount
                 FROM bids b 
                 JOIN users u ON b.user_id = u.id 
                 WHERE b.auction_id = ? 
-                ORDER BY b.is_winning DESC, b.bid_amount DESC, b.bid_time DESC
+                ORDER BY b.bid_amount DESC, b.bid_time DESC
                 LIMIT 3
             ");
             $topBiddersStmt->execute([$auction['id']]);
@@ -187,21 +185,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 throw new Exception('Не можете да купите собствен търг!');
             }
             
-            if (!$auction['buy_now_price'] || ($auction['auction_type'] !== 'both' && $auction['auction_type'] !== 'buy_now')) {
+            if (!$auction['buy_now_price']) {
                 throw new Exception('Този търг не поддържа "Купи сега" опция!');
             }
             
-            // Mark all previous bids as not winning
-            $stmt = $pdo->prepare("UPDATE bids SET is_winning = FALSE WHERE auction_id = ?");
-            $stmt->execute([$auctionId]);
-            
-            // Create a "buy now" bid record and mark it as winning
-            $stmt = $pdo->prepare("INSERT INTO bids (auction_id, user_id, bid_amount, is_winning) VALUES (?, ?, ?, TRUE)");
+            // Create a "buy now" bid record
+            $stmt = $pdo->prepare("INSERT INTO bids (auction_id, user_id, bid_amount) VALUES (?, ?, ?)");
             $stmt->execute([$auctionId, $_SESSION['user_id'], $auction['buy_now_price']]);
             
-            // End the auction and set winner
-            $stmt = $pdo->prepare("UPDATE auctions SET status = 'ended', winner_id = ?, current_price = ?, total_bids = total_bids + 1, updated_at = NOW() WHERE id = ?");
-            $stmt->execute([$_SESSION['user_id'], $auction['buy_now_price'], $auctionId]);
+            // End the auction and update current price
+            $stmt = $pdo->prepare("UPDATE auctions SET status = 'ended', current_price = ?, updated_at = NOW() WHERE id = ?");
+            $stmt->execute([$auction['buy_now_price'], $auctionId]);
             
             $pdo->commit();
             
@@ -279,25 +273,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
             
             $currentPrice = $auction['highest_bid'] ?? $auction['starting_price'];
-            $minBid = $currentPrice + $auction['min_bid_increment'];
+            $minBid = $currentPrice + 1; // Minimum increment of 1 lev
             
-            if ($bidAmount < $minBid) {
-                throw new Exception("Минималната наддавка е {$minBid} лв.!");
+            if ($bidAmount <= $currentPrice) {
+                throw new Exception("Наддавката трябва да бъде по-висока от текущата цена ({$currentPrice} лв.)!");
             }
             
-            // Mark previous winning bid as not winning
-            $stmt = $pdo->prepare("UPDATE bids SET is_winning = FALSE WHERE auction_id = ? AND is_winning = TRUE");
-            $stmt->execute([$auctionId]);
-            
             // Insert new bid
-            $stmt = $pdo->prepare("INSERT INTO bids (auction_id, user_id, bid_amount, is_winning) VALUES (?, ?, ?, TRUE)");
+            $stmt = $pdo->prepare("INSERT INTO bids (auction_id, user_id, bid_amount, bid_time) VALUES (?, ?, ?, NOW())");
             $stmt->execute([$auctionId, $_SESSION['user_id'], $bidAmount]);
             
-            // Update auction
-            $stmt = $pdo->prepare("UPDATE auctions SET current_price = ?, total_bids = total_bids + 1, updated_at = NOW() WHERE id = ?");
+            // Update auction current price only
+            $stmt = $pdo->prepare("UPDATE auctions SET current_price = ?, updated_at = NOW() WHERE id = ?");
             $stmt->execute([$bidAmount, $auctionId]);
             
             $pdo->commit();
+            
+            // Get updated total bids count
+            $totalBidsStmt = $pdo->prepare("SELECT COUNT(*) as count FROM bids WHERE auction_id = ?");
+            $totalBidsStmt->execute([$auctionId]);
+            $totalBids = $totalBidsStmt->fetch(PDO::FETCH_ASSOC)['count'];
             
             // Get updated top bidders for immediate UI update
             $topBiddersStmt = $pdo->prepare("
@@ -316,7 +311,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 'success' => true, 
                 'message' => 'Успешно наддаване!',
                 'new_price' => $bidAmount,
-                'total_bids' => $auction['total_bids'] + 1,
+                'total_bids' => $totalBids,
                 'top_bidders' => $topBidders
             ]);
             
