@@ -1,0 +1,33 @@
+; # .htaccess файл за защита
+
+; # Защита на config.php
+; <Files "config.php">
+;     Order allow,deny
+;     Deny from all
+; </Files>
+
+; # Защита на setup_database.php след първоначално използване
+; <Files "setup_database.php">
+;     Order allow,deny
+;     Deny from all
+; </Files>
+
+; # Активиране на error reporting (само за разработка)
+; # php_flag display_errors on
+; # php_flag display_startup_errors on
+
+; # Защита срещу XSS
+; Header set X-XSS-Protection "1; mode=block"
+; Header set X-Content-Type-Options "nosniff"
+; Header set X-Frame-Options "SAMEORIGIN"
+
+; # Увеличаване на лимитите за upload (ако е нужно)
+; php_value upload_max_filesize 10M
+; php_value post_max_size 10M
+
+; # Активиране на session
+; php_flag session.cookie_httponly on
+; php_flag session.cookie_secure off
+
+; # Пренасочване на index
+; DirectoryIndex index.html index.php
