@@ -692,7 +692,7 @@ function showAuctionDetails(auctionId) {
                             <span class="modal-meta-label">Категория:</span> ${getCategoryName(auction.category)}
                         </div>
                         <div class="modal-meta-item">
-                            <span class="modal-meta-label">Продавач:</span> <a href="#" onclick="showUserProfile('${auction.username || 'Неизвестен'}'); return false;" style="color: #11998e; text-decoration: none;">${auction.username || 'Неизвестен'}</a>
+                            <span class="modal-meta-label">Продавач:</span> ${auction.username || 'Неизвестен'}
                         </div>
                         ${auction.buy_now_price ? `
                             <div class="modal-meta-item">
@@ -780,7 +780,7 @@ async function showAuctionResults(auctionId) {
                                 <span class="modal-meta-label">Общо наддавания:</span> ${auction.total_bids}
                             </div>
                             <div class="modal-meta-item">
-                                <span class="modal-meta-label">Продавач:</span> <a href="#" onclick="showUserProfile('${auction.seller_username}'); return false;" style="color: #11998e; text-decoration: none;">${auction.seller_username}</a>
+                                <span class="modal-meta-label">Продавач:</span> ${auction.seller_username}
                             </div>
                         </div>
                         
@@ -824,24 +824,6 @@ function closeModal(event) {
         modal.style.display = 'none';
         setTimeout(() => modal.remove(), 300);
     }
-}
-
-function showUserProfile(username) {
-    const modalHTML = `
-        <div class="modal-overlay" id="userModal" onclick="closeModal(event)">
-            <div class="modal" onclick="event.stopPropagation()">
-                <div class="modal-header">
-                    <h2 class="modal-title">👤 ${username}</h2>
-                    <button class="modal-close" onclick="closeModal()">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p>Зареждане на информация за потребителя...</p>
-                </div>
-            </div>
-        </div>
-    `;
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    document.getElementById('userModal').style.display = 'flex';
 }
 
 async function showMyProfile() {
