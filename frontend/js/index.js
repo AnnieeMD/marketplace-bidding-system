@@ -7,7 +7,6 @@ let currentPage = 1;
 const auctionsPerPage = 6;
 let totalAuctions = 0;
 
-// Toast Notification System
 function showToast(title, message, type = 'info', duration = 5000) {
     const toastContainer = document.getElementById('toastContainer');
     const toast = document.createElement('div');
@@ -32,11 +31,9 @@ function showToast(title, message, type = 'info', duration = 5000) {
     `;
     
     toastContainer.appendChild(toast);
-    
-    // Show toast with animation
+
     setTimeout(() => toast.classList.add('show'), 100);
-    
-    // Auto-remove toast
+
     setTimeout(() => {
         if (toast.parentNode) {
             closeToast(toast.querySelector('.toast-close'));
@@ -58,13 +55,11 @@ window.addEventListener('load', () => {
     checkUserSession();
     loadAuctions();
     startCountdownTimer();
-    startAuctionPolling(); // Start real-time polling for auction updates
-    
-    // Check session every 30 seconds to detect user changes
+    startAuctionPolling();
+
     setInterval(checkUserSession, 30000);
 });
 
-// Also check session when page becomes visible again
 document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
         checkUserSession();
@@ -79,8 +74,7 @@ async function checkUserSession() {
     try {
         const response = await fetch('/backend/check_session.php');
         const data = await response.json();
-        
-        // Always update currentUser, even if logged out
+
         const previousUser = currentUser;
         currentUser = data.logged_in ? data.user : null;
         
@@ -96,8 +90,7 @@ async function checkUserSession() {
             document.getElementById('userMenu').classList.add('hidden');
             document.getElementById('logoutLink').classList.add('hidden');
         }
-        
-        // If user changed, re-render auctions to update ownership
+
         if (previousUser?.id !== currentUser?.id) {
             renderAuctions();
         }
@@ -220,13 +213,11 @@ function renderPagination() {
     }
     
     let paginationHTML = '<div class="pagination">';
-    
-    // Previous button
+
     if (currentPage > 1) {
         paginationHTML += `<button class="pagination-btn" onclick="loadAuctions(${currentPage - 1})">← Предишна</button>`;
     }
-    
-    // Page numbers
+
     const startPage = Math.max(1, currentPage - 2);
     const endPage = Math.min(totalPages, currentPage + 2);
     
@@ -248,8 +239,7 @@ function renderPagination() {
         }
         paginationHTML += `<button class="pagination-btn" onclick="loadAuctions(${totalPages})">${totalPages}</button>`;
     }
-    
-    // Next button
+
     if (currentPage < totalPages) {
         paginationHTML += `<button class="pagination-btn" onclick="loadAuctions(${currentPage + 1})">Следваща →</button>`;
     }
@@ -261,7 +251,6 @@ function renderPagination() {
 }
 
 function updateAuctionAfterBid(auctionId, newPrice, totalBids, topBidders) {
-    // Update the auction in the currentAuctions array
     const auctionIndex = currentAuctions.findIndex(auction => auction.id == auctionId);
     if (auctionIndex !== -1) {
         currentAuctions[auctionIndex].current_price = newPrice;
@@ -269,24 +258,20 @@ function updateAuctionAfterBid(auctionId, newPrice, totalBids, topBidders) {
         if (topBidders) {
             currentAuctions[auctionIndex].top_bidders = topBidders;
         }
-        
-        // Update the DOM elements immediately
+
         const auctionCard = document.querySelector(`[data-auction-id="${auctionId}"]`);
         if (auctionCard) {
-            // Update the price
             const priceElement = auctionCard.querySelector('.auction-price');
             if (priceElement) {
                 priceElement.textContent = `${newPrice} лв.`;
             }
-            
-            // Update bid input minimum value
+
             const bidInput = auctionCard.querySelector('.bid-input');
             if (bidInput) {
                 bidInput.min = parseFloat(newPrice) + 1;
                 bidInput.placeholder = "Наддайте...";
             }
-            
-            // Update top bidders display if topBidders data is provided
+
             if (topBidders) {
                 const topBiddersElement = auctionCard.querySelector('.top-bidders');
                 if (topBiddersElement) {
@@ -308,12 +293,11 @@ function searchAuctions() {
     currentSearch = document.getElementById('searchInput').value.trim();
     currentCategory = document.getElementById('categorySelect').value;
     currentPriceSort = document.getElementById('priceSort').value;
-    currentPage = 1; // Reset to first page on search
+    currentPage = 1;
     loadAuctions(1);
 }
 
 async function placeBid(auctionId) {
-    // Check if user is logged in
     if (!currentUser) {
         showToast('Необходим вход', 'Трябва да сте влезли в профила си, за да наддавате!', 'warning');
         return;
@@ -326,8 +310,7 @@ async function placeBid(auctionId) {
         showToast('Невалидна сума', 'Моля, въведете валидна сума за наддаване!', 'warning');
         return; 
     }
-    
-    // Validate maximum bid amount
+
     if (bidAmount > 99999999.99) {
         showToast('Твърде голяма сума', 'Максималната възможна наддавка е 99,999,999.99 лв.!', 'warning');
         return;
@@ -343,8 +326,7 @@ async function placeBid(auctionId) {
         const data = await response.json();
         if (data.success) {
             bidInput.value = '';
-            
-            // Update the auction data in memory and UI immediately
+
             updateAuctionAfterBid(auctionId, data.new_price, data.total_bids, data.top_bidders);
             
         } else {
@@ -356,13 +338,11 @@ async function placeBid(auctionId) {
 }
 
 async function buyNow(auctionId, price) {
-    // Check if user is logged in
     if (!currentUser) {
         showToast('Необходим вход', 'Трябва да сте влезли в профила си, за да купувате!', 'warning');
         return;
     }
-    
-    // Confirm the purchase
+
     if (!confirm(`Искате ли да купите този артикул сега за ${price} лв.? Това действие не може да бъде отменено.`)) {
         return;
     }
@@ -380,26 +360,22 @@ async function buyNow(auctionId, price) {
         const data = await response.json();
         if (data.success) {
             showToast('Успешна покупка!', `Успешно закупихте артикула за ${data.final_price} лв.!`, 'success');
-            
-            // Remove the auction from the display or mark as ended
+
             const auctionCard = document.querySelector(`[data-auction-id="${auctionId}"]`);
             if (auctionCard) {
                 auctionCard.querySelector('.auction-badge').textContent = 'Приключил';
                 auctionCard.querySelector('.auction-badge').classList.add('ended');
-                
-                // Remove bidding section
+
                 const biddingSection = auctionCard.querySelector('.bidding-section');
                 if (biddingSection) {
                     biddingSection.remove();
                 }
-                
-                // Update price to final buy now price
+
                 const priceElement = auctionCard.querySelector('.auction-price');
                 if (priceElement) {
                     priceElement.textContent = `${data.final_price} лв.`;
                 }
-                
-                // Update winner display
+
                 const topBiddersElement = auctionCard.querySelector('.top-bidders');
                 if (topBiddersElement && data.winner) {
                     topBiddersElement.innerHTML = `
@@ -409,15 +385,13 @@ async function buyNow(auctionId, price) {
                         </div>
                     `;
                 }
-                
-                // Update time remaining
+
                 const timeElement = auctionCard.querySelector('.auction-time-remaining');
                 if (timeElement) {
                     timeElement.textContent = 'Приключил';
                 }
             }
-            
-            // Close modal if open
+
             const modal = document.getElementById('auctionModal');
             if (modal && modal.style.display !== 'none') {
                 closeModal();
@@ -449,8 +423,7 @@ function startCountdownTimer() {
         const timeElements = document.querySelectorAll('.auction-time-remaining, .modal-time-remaining');
         let auctionsEnded = false;
         const processedAuctions = new Set();
-        
-        // First, update the auction time_remaining for each unique auction
+
         currentAuctions.forEach(auction => {
             if (auction.actual_status === 'active' && auction.time_remaining > 0) {
                 auction.time_remaining -= 1;
@@ -461,8 +434,7 @@ function startCountdownTimer() {
                 }
             }
         });
-        
-        // Then, update all timer elements to display the current time
+
         timeElements.forEach(element => {
             const auctionId = element.getAttribute('data-auction-id');
             const auction = currentAuctions.find(a => a.id == auctionId);
@@ -472,8 +444,7 @@ function startCountdownTimer() {
                 } else {
                     element.textContent = formatTimeRemaining(auction.time_remaining);
                 }
-                
-                // Update the auction badge if time has expired (only for main cards, not modal)
+
                 if (auction.time_remaining <= 0 && element.classList.contains('auction-time-remaining')) {
                     const card = document.querySelector(`[data-auction-id="${auctionId}"]`);
                     if (card) {
@@ -482,12 +453,10 @@ function startCountdownTimer() {
                             badge.textContent = 'Приключил';
                             badge.classList.add('ended');
                         }
-                        // Hide bidding section when auction ends
                         const biddingSection = card.querySelector('.bidding-section');
                         if (biddingSection) {
                             biddingSection.style.display = 'none';
                         }
-                        // Remove delete button when auction ends
                         const deleteBtn = card.querySelector('.delete-btn');
                         if (deleteBtn) {
                             deleteBtn.style.display = 'none';
@@ -496,8 +465,7 @@ function startCountdownTimer() {
                 }
             }
         });
-        
-        // If any auctions ended, process them on the server
+
         if (auctionsEnded) {
             processEndedAuctions();
         }
@@ -506,7 +474,6 @@ function startCountdownTimer() {
 
 let lastEndedAuctionsProcessed = 0;
 async function processEndedAuctions() {
-    // Prevent processing too frequently
     const now = Date.now();
     if (now - lastEndedAuctionsProcessed < 5000) {
         return;
@@ -521,7 +488,6 @@ async function processEndedAuctions() {
         
         const data = await response.json();
         if (data.success && data.processed > 0) {
-            // Reload auctions to get updated status from server with a delay
             setTimeout(() => {
                 loadAuctions();
             }, 3000);
@@ -532,14 +498,12 @@ async function processEndedAuctions() {
 }
 
 function startAuctionPolling() {
-    // Poll for auction updates every 5 seconds
     setInterval(async () => {
         await checkForAuctionUpdates();
     }, 5000);
 }
 
 async function checkForAuctionUpdates() {
-    // Only update if we're on the first page to avoid pagination conflicts
     if (currentPage !== 1) return;
     
     try {
@@ -556,52 +520,43 @@ async function checkForAuctionUpdates() {
             const newAuctions = data.auctions;
             let hasUpdates = false;
             let hasNewAuctions = false;
-            
-            // Check for new auctions
+
             newAuctions.forEach(newAuction => {
                 const existingAuction = currentAuctions.find(a => a.id === newAuction.id);
                 if (!existingAuction) {
-                    // This is a new auction, add it to the list
-                    currentAuctions.unshift(newAuction); // Add to beginning
+                    currentAuctions.unshift(newAuction);
                     hasUpdates = true;
                     hasNewAuctions = true;
                 }
             });
-            
-            // Check for deleted auctions
+
             const currentAuctionIds = newAuctions.map(a => a.id);
             const deletedAuctions = currentAuctions.filter(auction => !currentAuctionIds.includes(auction.id));
             if (deletedAuctions.length > 0) {
                 currentAuctions = currentAuctions.filter(auction => currentAuctionIds.includes(auction.id));
                 hasUpdates = true;
             }
-            
-            // Check each existing auction for updates (price, bids, status, etc.)
+
             newAuctions.forEach(newAuction => {
                 const existingAuction = currentAuctions.find(a => a.id === newAuction.id);
                 if (existingAuction) {
-                    // Check if price, bidder, or status has changed
                     if (existingAuction.current_price !== newAuction.current_price ||
                         existingAuction.total_bids !== newAuction.total_bids ||
                         existingAuction.actual_status !== newAuction.actual_status ||
                         existingAuction.last_updated !== newAuction.last_updated) {
-                        
-                        // Update the auction data
+
                         const auctionIndex = currentAuctions.findIndex(a => a.id === newAuction.id);
                         currentAuctions[auctionIndex] = newAuction;
-                        
-                        // If status changed to ended, force a full re-render to update UI properly
+
                         if (existingAuction.actual_status !== newAuction.actual_status && newAuction.actual_status === 'ended') {
                             hasUpdates = true;
                         } else {
-                            // Update the UI for this specific auction
                             updateAuctionUI(newAuction);
                         }
                     }
                 }
             });
-            
-            // If there were new auctions, deletions, or status changes, re-render the entire grid
+
             if (hasNewAuctions || deletedAuctions.length > 0 || hasUpdates) {
                 renderAuctions();
             }
@@ -614,13 +569,11 @@ async function checkForAuctionUpdates() {
 function updateAuctionUI(auction) {
     const auctionCard = document.querySelector(`[data-auction-id="${auction.id}"]`);
     if (auctionCard) {
-        // Update the price
         const priceElement = auctionCard.querySelector('.auction-price');
         if (priceElement) {
             priceElement.textContent = `${auction.current_price} лв.`;
         }
-        
-        // Update auction status and timer
+
         const timeElement = auctionCard.querySelector('.auction-time-remaining');
         const badgeElement = auctionCard.querySelector('.auction-badge');
         
@@ -632,25 +585,21 @@ function updateAuctionUI(auction) {
                 badgeElement.textContent = 'Приключил';
                 badgeElement.classList.add('ended');
             }
-            // Remove bidding section if auction ended
             const biddingSection = auctionCard.querySelector('.bidding-section');
             if (biddingSection) {
                 biddingSection.remove();
             }
         } else {
-            // Update timer for active auctions
             if (timeElement) {
                 timeElement.textContent = formatTimeRemaining(auction.time_remaining);
             }
         }
-        
-        // Update bid input minimum value for active auctions
+
         const bidInput = auctionCard.querySelector('.bid-input');
         if (bidInput && auction.actual_status === 'active') {
             bidInput.min = parseFloat(auction.current_price) + 1;
         }
-        
-        // Update top bidders display
+
         if (auction.top_bidders) {
             const topBiddersElement = auctionCard.querySelector('.top-bidders');
             if (topBiddersElement) {
@@ -686,7 +635,6 @@ function showAuctionDetails(auctionId) {
     const isActive = auction.actual_status === 'active';
     const currentPrice = auction.current_price || auction.starting_price;
 
-    // If auction has ended, show results instead of bidding interface
     if (!isActive) {
         showAuctionResults(auctionId);
         return;
@@ -1074,7 +1022,6 @@ async function showMyProfile() {
 }
 
 function placeBidFromModal(auctionId) {
-    // Check if user is logged in
     if (!currentUser) {
         showToast('Необходим вход', 'Трябва да сте влезли в профила си, за да наддавате!', 'warning');
         return;
@@ -1087,14 +1034,12 @@ function placeBidFromModal(auctionId) {
         showToast('Невалидна сума', 'Моля, въведете валидна сума за наддаване!', 'warning');
         return; 
     }
-    
-    // Validate maximum bid amount
+
     if (bidAmount > 99999999.99) {
         showToast('Твърде голяма сума', 'Максималната възможна наддавка е 99,999,999.99 лв.!', 'warning');
         return;
     }
-    
-    // Use the same placeBid logic but close modal on success
+
     fetch('/backend/auctions.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1104,8 +1049,7 @@ function placeBidFromModal(auctionId) {
     .then(data => {
         if (data.success) {
             closeModal();
-            
-            // Update the auction data in memory and UI immediately
+
             updateAuctionAfterBid(auctionId, data.new_price, data.total_bids, data.top_bidders);
             
         } else {
@@ -1145,7 +1089,6 @@ async function deleteAuction(auctionId) {
         
         if (data.success) {
             showToast('Успех!', data.message, 'success');
-            // Remove the auction from the current list and re-render
             currentAuctions = currentAuctions.filter(auction => auction.id != auctionId);
             renderAuctions();
         } else {
@@ -1156,7 +1099,6 @@ async function deleteAuction(auctionId) {
     }
 }
 
-// Login/Logout
 document.getElementById('loginLink').addEventListener('click', (e) => {
     e.preventDefault();
     window.location.href = '/frontend/pages/login.html';

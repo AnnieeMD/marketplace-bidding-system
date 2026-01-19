@@ -1,14 +1,11 @@
 <?php
-// create_auction.php - API for creating new auctions
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Set timezone to match database
 date_default_timezone_set('Europe/Sofia');
 
-// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -17,7 +14,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 require_once 'config.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Check if user is logged in
     if (!isset($_SESSION['user_id'])) {
         http_response_code(401);
         echo json_encode(['success' => false, 'message' => 'Трябва да сте влезли в профила си.']);
@@ -26,8 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         $pdo = getDBConnection();
-        
-        // Get POST data
+
         $input = json_decode(file_get_contents('php://input'), true);
         
         $title = trim($input['title'] ?? '');
@@ -38,8 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $location = trim($input['location'] ?? '');
         $duration_hours = floatval($input['duration_hours'] ?? 24);
         $image_url = trim($input['image_url'] ?? '');
-        
-        // Validation
+
         if (empty($title)) {
             echo json_encode(['success' => false, 'message' => 'Заглавието е задължително.']);
             exit();
@@ -64,11 +58,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             echo json_encode(['success' => false, 'message' => 'Цената "Купи сега" трябва да бъде по-висока от началната цена.']);
             exit();
         }
-        
-        // Calculate end time with precise timing
+
         $end_time = date('Y-m-d H:i:s', time() + ($duration_hours * 3600));
-        
-        // Insert auction
+
         $stmt = $pdo->prepare("
             INSERT INTO auctions (title, description, starting_price, buy_now_price, category, location, end_time, image_url, user_id, created_at, updated_at) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())

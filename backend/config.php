@@ -1,17 +1,14 @@
 <?php
-// Database configuration
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'marketplace-bidding-system');
 define('DB_USER', 'admin');
 define('DB_PASS', 'admin');
 define('DB_PORT', '5432');
 
-// Start session if not already started
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Database connection function
 function getDBConnection() {
     try {
         $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME;
@@ -25,12 +22,10 @@ function getDBConnection() {
     }
 }
 
-// Helper function to check if user is logged in
 function isLoggedIn() {
     return isset($_SESSION['user_id']) && !empty($_SESSION['user_id']);
 }
 
-// Helper function to get current user
 function getCurrentUser() {
     if (!isLoggedIn()) {
         return null;

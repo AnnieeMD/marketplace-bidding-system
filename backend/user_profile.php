@@ -10,18 +10,15 @@ if (!isset($_SESSION['user_id'])) {
 try {
     $pdo = getDBConnection();
     $userId = $_SESSION['user_id'];
-    
-    // Get user info
+
     $userStmt = $pdo->prepare("SELECT username, email, created_at FROM users WHERE id = ?");
     $userStmt->execute([$userId]);
     $user = $userStmt->fetch(PDO::FETCH_ASSOC);
-    
-    // Get created auctions
+
     $createdStmt = $pdo->prepare("SELECT title, starting_price, current_price, status, created_at, (SELECT COUNT(*) FROM bids WHERE auction_id = auctions.id) as bid_count FROM auctions WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
     $createdStmt->execute([$userId]);
     $created = $createdStmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Get won auctions - auctions where user has the highest bid and auction is ended
+
     $wonStmt = $pdo->prepare("
         SELECT a.title, b.bid_amount, a.end_time, 
                (SELECT COUNT(*) FROM bids WHERE auction_id = a.id) as total_bidders
@@ -33,8 +30,7 @@ try {
     ");
     $wonStmt->execute([$userId]);
     $won = $wonStmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Get recent bidding activity
+
     $recentBidsStmt = $pdo->prepare("
         SELECT a.title, b.bid_amount, b.bid_time, a.status,
                CASE WHEN b.bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = a.id) THEN 1 ELSE 0 END as is_winning
@@ -45,8 +41,7 @@ try {
     ");
     $recentBidsStmt->execute([$userId]);
     $recentBids = $recentBidsStmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    // Get comprehensive statistics
+
     $statsStmt = $pdo->prepare("
         SELECT 
             (SELECT COUNT(*) FROM auctions WHERE user_id = ?) as auctions_created,

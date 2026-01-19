@@ -4,7 +4,6 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -29,8 +28,7 @@ try {
     $username = trim($input['username']);
     $email = trim($input['email']);
     $password = $input['password'];
-    
-    // Basic validation
+
     if (empty($username) || empty($email) || empty($password)) {
         echo json_encode(['success' => false, 'message' => 'All fields are required']);
         exit();
@@ -52,8 +50,7 @@ try {
     }
     
     $pdo = getDBConnection();
-    
-    // Check if username or email already exists
+
     $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ? OR email = ?");
     $stmt->execute([$username, $email]);
     
@@ -61,16 +58,14 @@ try {
         echo json_encode(['success' => false, 'message' => 'Username or email already exists']);
         exit();
     }
-    
-    // Hash password and create user
+
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     
     $stmt = $pdo->prepare("INSERT INTO users (username, email, password, created_at) VALUES (?, ?, ?, NOW())");
     $stmt->execute([$username, $email, $hashedPassword]);
     
     $userId = $pdo->lastInsertId();
-    
-    // Auto-login after registration
+
     $_SESSION['user_id'] = $userId;
     $_SESSION['username'] = $username;
     $_SESSION['email'] = $email;

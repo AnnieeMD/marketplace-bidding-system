@@ -1,4 +1,4 @@
-// Toast Notification System
+
 function showToast(title, message, type = 'info', duration = 5000) {
     const toastContainer = document.getElementById('toastContainer');
     if (!toastContainer) return;
@@ -25,11 +25,9 @@ function showToast(title, message, type = 'info', duration = 5000) {
     `;
     
     toastContainer.appendChild(toast);
-    
-    // Show toast with animation
+
     setTimeout(() => toast.classList.add('show'), 100);
-    
-    // Auto-remove toast
+
     setTimeout(() => {
         if (toast.parentNode) {
             closeToast(toast.querySelector('.toast-close'));

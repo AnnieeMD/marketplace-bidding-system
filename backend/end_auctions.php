@@ -1,14 +1,11 @@
 <?php
-// end_auctions.php - Process and finalize ended auctions
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Set timezone to match database
 date_default_timezone_set('Europe/Sofia');
 
-// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -19,8 +16,7 @@ require_once 'config.php';
 try {
     $pdo = getDBConnection();
     $pdo->beginTransaction();
-    
-    // Find all auctions that have ended but are still marked as active
+
     $stmt = $pdo->prepare("
         SELECT a.id, a.title, a.user_id as seller_id, a.starting_price,
                (SELECT user_id FROM bids WHERE auction_id = a.id AND bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = a.id) LIMIT 1) as winner_id,
@@ -37,13 +33,10 @@ try {
     
     foreach ($endedAuctions as $auction) {
         try {
-            // Mark auction as ended
             $updateStmt = $pdo->prepare("UPDATE auctions SET status = 'ended', updated_at = NOW() WHERE id = ?");
             $updateStmt->execute([$auction['id']]);
-            
-            // If there were bids, update final price
+
             if ($auction['total_bids'] > 0 && $auction['winner_id']) {
-                // Update final price in auction
                 $priceStmt = $pdo->prepare("UPDATE auctions SET current_price = ? WHERE id = ?");
                 $priceStmt->execute([$auction['winning_bid'], $auction['id']]);
                 

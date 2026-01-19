@@ -1,14 +1,11 @@
 <?php
-// auctions.php - API for fetching auctions and placing bids
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Set timezone to match database
 date_default_timezone_set('Europe/Sofia');
 
-// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -19,16 +16,14 @@ require_once 'config.php';
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     try {
         $pdo = getDBConnection();
-        
-        // Get search parameters
+
         $search = $_GET['search'] ?? '';
         $category = $_GET['category'] ?? '';
         $status = $_GET['status'] ?? 'active';
         $priceSort = $_GET['price_sort'] ?? '';
         $limit = isset($_GET['limit']) ? (int)$_GET['limit'] : 20;
         $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
-        
-        // Build query
+
         $sql = "SELECT a.*, u.username,
                        CASE 
                            WHEN a.end_time < NOW() THEN 'ended'
@@ -42,29 +37,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                 LEFT JOIN users u ON a.user_id = u.id 
                 WHERE 1=1 AND a.end_time > NOW() - INTERVAL '1 day'";
         $params = [];
-        
-        // Add status filter
+
         if ($status === 'active') {
             $sql .= " AND a.status = 'active' AND a.end_time > NOW()";
         } elseif ($status === 'ended') {
             $sql .= " AND (a.status = 'ended' OR a.end_time <= NOW())";
         }
-        
-        // Add search filter
+
         if (!empty($search)) {
             $sql .= " AND (a.title ILIKE ? OR a.description ILIKE ?)";
             $searchTerm = "%{$search}%";
             $params[] = $searchTerm;
             $params[] = $searchTerm;
         }
-        
-        // Add category filter
+
         if (!empty($category)) {
             $sql .= " AND a.category = ?";
             $params[] = $category;
         }
-        
-        // Add ORDER BY clause with price sorting if specified
+
         if ($priceSort === 'asc') {
             $sql .= " ORDER BY COALESCE((SELECT MAX(bid_amount) FROM bids b WHERE b.auction_id = a.id), a.starting_price) ASC";
         } elseif ($priceSort === 'desc') {
@@ -80,14 +71,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $stmt = $pdo->prepare($sql);
         $stmt->execute($params);
         $auctions = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
-        // Process auction data
+
         foreach ($auctions as &$auction) {
             $auction['time_remaining'] = max(0, $auction['time_remaining']);
             $auction['current_price'] = $auction['highest_bid'] ?? $auction['starting_price'];
             $auction['has_bids'] = $auction['total_bids'] > 0;
-            
-            // Get top 3 bidders for main page display
+
             $topBiddersStmt = $pdo->prepare("
                 SELECT u.username, b.bid_amount
                 FROM bids b 
@@ -99,8 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $topBiddersStmt->execute([$auction['id']]);
             $auction['top_bidders'] = $topBiddersStmt->fetchAll(PDO::FETCH_ASSOC);
         }
-        
-        // Get total count for pagination
+
         $countSql = "SELECT COUNT(*) as total FROM auctions a WHERE 1=1 AND a.end_time > NOW() - INTERVAL '1 day'";
         $countParams = [];
         
@@ -138,7 +126,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
 
 } elseif ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Handle bidding and buy now
     if (!isset($_SESSION['user_id'])) {
         echo json_encode(['success' => false, 'message' => 'Трябва да сте влезли в профила си за да наддавате!']);
         exit();
@@ -154,12 +141,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
     
     if ($action === 'buy_now') {
-        // Handle buy now functionality
         try {
             $pdo = getDBConnection();
             $pdo->beginTransaction();
-            
-            // Get auction details
+
             $stmt = $pdo->prepare("SELECT *, 
                                           (SELECT MAX(bid_amount) FROM bids WHERE auction_id = ?) as highest_bid
                                    FROM auctions 
@@ -170,13 +155,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             if (!$auction) {
                 throw new Exception('Търгът не е намерен!');
             }
-            
-            // Check if auction is still active
+
             if ($auction['status'] !== 'active') {
                 throw new Exception('Този търг вече е приключил!');
             }
-            
-            // Check if auction time has expired
+
             if (strtotime($auction['end_time']) <= time()) {
                 throw new Exception('Времето на този търг е изтекло!');
             }
@@ -188,21 +171,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             if (!$auction['buy_now_price']) {
                 throw new Exception('Този търг не поддържа "Купи сега" опция!');
             }
-            
-            // Create a "buy now" bid record
+
             $stmt = $pdo->prepare("INSERT INTO bids (auction_id, user_id, bid_amount) VALUES (?, ?, ?)");
             $stmt->execute([$auctionId, $_SESSION['user_id'], $auction['buy_now_price']]);
-            
-            // End the auction and update current price
+
             $stmt = $pdo->prepare("UPDATE auctions SET status = 'ended', current_price = ?, updated_at = NOW() WHERE id = ?");
             $stmt->execute([$auction['buy_now_price'], $auctionId]);
             
             $pdo->commit();
-            
-            // Log successful purchase for debugging
+
             error_log("Buy now successful: Auction {$auctionId} purchased by user {$_SESSION['user_id']} for {$auction['buy_now_price']}");
-            
-            // Get buyer username for response
+
             $userStmt = $pdo->prepare("SELECT username FROM users WHERE id = ?");
             $userStmt->execute([$_SESSION['user_id']]);
             $buyer = $userStmt->fetch(PDO::FETCH_ASSOC);
@@ -230,7 +209,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
         
     } else {
-        // Handle regular bidding
         $bidAmount = $data['bid_amount'] ?? null;
         
         if (!$bidAmount) {
@@ -246,8 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         try {
             $pdo = getDBConnection();
             $pdo->beginTransaction();
-            
-            // Get auction details
+
             $stmt = $pdo->prepare("SELECT *, 
                                           (SELECT MAX(bid_amount) FROM bids WHERE auction_id = ?) as highest_bid
                                    FROM auctions 
@@ -256,7 +233,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $auction = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if (!$auction) {
-                // Check if auction exists but has ended
                 $endedStmt = $pdo->prepare("SELECT id, end_time FROM auctions WHERE id = ?");
                 $endedStmt->execute([$auctionId]);
                 $endedAuction = $endedStmt->fetch();
@@ -273,28 +249,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             }
             
             $currentPrice = $auction['highest_bid'] ?? $auction['starting_price'];
-            $minBid = $currentPrice + 1; // Minimum increment of 1 lev
+            $minBid = $currentPrice + 1;
             
             if ($bidAmount <= $currentPrice) {
                 throw new Exception("Наддавката трябва да бъде по-висока от текущата цена ({$currentPrice} лв.)!");
             }
-            
-            // Insert new bid
+
             $stmt = $pdo->prepare("INSERT INTO bids (auction_id, user_id, bid_amount, bid_time) VALUES (?, ?, ?, NOW())");
             $stmt->execute([$auctionId, $_SESSION['user_id'], $bidAmount]);
-            
-            // Update auction current price only
+
             $stmt = $pdo->prepare("UPDATE auctions SET current_price = ?, updated_at = NOW() WHERE id = ?");
             $stmt->execute([$bidAmount, $auctionId]);
             
             $pdo->commit();
-            
-            // Get updated total bids count
+
             $totalBidsStmt = $pdo->prepare("SELECT COUNT(*) as count FROM bids WHERE auction_id = ?");
             $totalBidsStmt->execute([$auctionId]);
             $totalBids = $totalBidsStmt->fetch(PDO::FETCH_ASSOC)['count'];
-            
-            // Get updated top bidders for immediate UI update
+
             $topBiddersStmt = $pdo->prepare("
                 SELECT u.username, MAX(b.bid_amount) as bid_amount
                 FROM bids b 
@@ -320,9 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         } catch (PDOException $e) {
             $pdo->rollBack();
-            // Log the actual error for debugging
             error_log("Database error in bidding: " . $e->getMessage());
-            // Return generic error message to user
             echo json_encode(['success' => false, 'message' => 'Internal Server Error']);
         }
     }

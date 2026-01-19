@@ -1,4 +1,3 @@
-// Login page JavaScript functionality
 
 function switchToRegister() {
     document.getElementById('loginForm').classList.add('hidden');
@@ -17,8 +16,7 @@ function switchToLogin() {
 function showMessage(elementId, message, type = 'error') {
     const messageEl = document.getElementById(elementId);
     messageEl.innerHTML = `<div class="${type === 'error' ? 'error-message' : 'success-message'}">${message}</div>`;
-    
-    // Auto-clear message after 5 seconds
+
     setTimeout(() => {
         messageEl.innerHTML = '';
     }, 5000);
@@ -33,8 +31,7 @@ async function handleLogin() {
         showMessage('loginMessage', 'Моля, попълнете всички полета!', 'error');
         return;
     }
-    
-    // Disable button during request
+
     loginBtn.disabled = true;
     loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Влизане...';
     
@@ -45,7 +42,7 @@ async function handleLogin() {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                username: email, // Can login with email or username
+                username: email,
                 password: password
             })
         });
@@ -64,7 +61,6 @@ async function handleLogin() {
         console.error('Login error:', error);
         showMessage('loginMessage', 'Грешка при свързване със сървъра. Моля, опитайте отново.', 'error');
     } finally {
-        // Re-enable button
         loginBtn.disabled = false;
         loginBtn.innerHTML = 'Влез';
     }
@@ -86,15 +82,13 @@ async function handleRegister() {
         showMessage('registerMessage', 'Паролата трябва да бъде поне 6 символа!', 'error');
         return;
     }
-    
-    // Basic email validation
+
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         showMessage('registerMessage', 'Моля, въведете валиден имейл адрес!', 'error');
         return;
     }
-    
-    // Disable button during request
+
     registerBtn.disabled = true;
     registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Регистриране...';
     
@@ -126,15 +120,12 @@ async function handleRegister() {
         console.error('Register error:', error);
         showMessage('registerMessage', 'Грешка при свързване със сървъра. Моля, опитайте отново.', 'error');
     } finally {
-        // Re-enable button
         registerBtn.disabled = false;
         registerBtn.innerHTML = 'Регистрирай се';
     }
 }
 
-// Allow Enter key to submit forms
 document.addEventListener('DOMContentLoaded', function() {
-    // Login form
     const loginInputs = document.querySelectorAll('#loginForm input');
     loginInputs.forEach(input => {
         input.addEventListener('keypress', function(e) {
@@ -143,8 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-    
-    // Register form
+
     const registerInputs = document.querySelectorAll('#registerForm input');
     registerInputs.forEach(input => {
         input.addEventListener('keypress', function(e) {

@@ -4,7 +4,6 @@ header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -13,7 +12,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
 require_once 'config.php';
 
 try {
-    // Clear all session data
     session_destroy();
     
     echo json_encode([

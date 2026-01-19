@@ -1,13 +1,10 @@
-// Create Auction Form Handler
 document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('auctionForm');
     const submitBtn = document.getElementById('submitBtn');
     const loadingDiv = document.getElementById('loading');
 
-    // Check if user is logged in
     checkUserSession();
 
-    // Handle auction type change to show/hide buy now price
     const auctionTypeSelect = document.getElementById('auction_type');
     const buyNowPriceGroup = document.getElementById('buyNowPriceGroup');
     
@@ -29,8 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
         loadingDiv.style.display = 'block';
         
         const formData = new FormData(form);
-        
-        // Convert form data to JSON
+
         const data = {
             title: formData.get('title'),
             description: formData.get('description'),
@@ -55,7 +51,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (result.success) {
                 showToast('Успех!', result.message, 'success');
-                // Redirect to main page after 2 seconds
                 setTimeout(() => {
                     window.location.href = 'index.html';
                 }, 2000);
@@ -71,7 +66,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Validation helpers
     const startingPriceInput = document.getElementById('starting_price');
     const buyNowPriceInput = document.getElementById('buy_now_price');
 

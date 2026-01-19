@@ -1,14 +1,11 @@
 <?php
-// auction_results.php - Get auction results and winner information
 header('Content-Type: application/json');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type');
 
-// Set timezone to match database
 date_default_timezone_set('Europe/Sofia');
 
-// Handle preflight requests
 if ($_SERVER['REQUEST_METHOD'] == 'OPTIONS') {
     http_response_code(200);
     exit();
@@ -26,8 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     
     try {
         $pdo = getDBConnection();
-        
-        // Get auction details
+
         $stmt = $pdo->prepare("
             SELECT a.*, 
                    u_seller.username as seller_username
@@ -42,8 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             echo json_encode(['success' => false, 'message' => 'Търгът не е намерен.']);
             exit();
         }
-        
-        // Get winner information if exists
+
         $winnerStmt = $pdo->prepare("
             SELECT u.username, b.bid_amount as winning_bid
             FROM bids b
@@ -54,8 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         ");
         $winnerStmt->execute([$auctionId, $auctionId]);
         $winner = $winnerStmt->fetch(PDO::FETCH_ASSOC);
-        
-        // Get total bids count
+
         $countStmt = $pdo->prepare("SELECT COUNT(*) as total_bids FROM bids WHERE auction_id = ?");
         $countStmt->execute([$auctionId]);
         $totalBids = $countStmt->fetch(PDO::FETCH_ASSOC)['total_bids'];
@@ -64,8 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             echo json_encode(['success' => false, 'message' => 'Търгът не е намерен.']);
             exit();
         }
-        
-        // Get all bids for this auction
+
         $bidStmt = $pdo->prepare("
             SELECT b.bid_amount, b.bid_time, u.username, 
                    CASE WHEN b.bid_amount = (SELECT MAX(bid_amount) FROM bids WHERE auction_id = b.auction_id) THEN 1 ELSE 0 END as is_winning
