@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const startingPriceInput = document.getElementById('starting_price');
     const buyNowPriceInput = document.getElementById('buy_now_price');
 
-    buyNowPriceInput.addEventListener('input', function() {
+    buyNowPriceInput.addEventListener('blur', function() {
         const startingPrice = parseFloat(startingPriceInput.value) || 0;
         const buyNowPrice = parseFloat(this.value) || 0;
         
