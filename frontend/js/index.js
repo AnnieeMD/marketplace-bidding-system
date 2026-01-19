@@ -932,8 +932,8 @@ async function showMyProfile() {
         if (data.created.length > 0) {
             html += '<div>';
             data.created.forEach(auction => {
-                const statusColor = auction.status === 'active' ? '#28a745' : '#6c757d';
-                const statusText = auction.status === 'active' ? 'Активен' : 'Приключил';
+                const statusColor = auction.actual_status === 'active' ? '#28a745' : '#6c757d';
+                const statusText = auction.actual_status === 'active' ? 'Активен' : 'Приключил';
                 const currentPrice = auction.current_price || auction.starting_price;
                 html += `
                     <div style="background: white; border: 1px solid #e9ecef; border-radius: 8px; padding: 12px; margin-bottom: 10px;">
