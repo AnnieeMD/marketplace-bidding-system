@@ -15,7 +15,15 @@ try {
     $userStmt->execute([$userId]);
     $user = $userStmt->fetch(PDO::FETCH_ASSOC);
 
-    $createdStmt = $pdo->prepare("SELECT title, starting_price, current_price, status, created_at, (SELECT COUNT(*) FROM bids WHERE auction_id = auctions.id) as bid_count FROM auctions WHERE user_id = ? ORDER BY created_at DESC LIMIT 5");
+    $createdStmt = $pdo->prepare("SELECT title, starting_price, current_price, status, created_at,
+                                         CASE 
+                                             WHEN end_time < NOW() THEN 'ended'
+                                             ELSE status 
+                                         END as actual_status,
+                                         (SELECT COUNT(*) FROM bids WHERE auction_id = auctions.id) as bid_count 
+                                  FROM auctions 
+                                  WHERE user_id = ? 
+                                  ORDER BY created_at DESC LIMIT 5");
     $createdStmt->execute([$userId]);
     $created = $createdStmt->fetchAll(PDO::FETCH_ASSOC);
 
