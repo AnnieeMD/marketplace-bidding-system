@@ -1,9 +1,9 @@
 <?php
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'marketplace-bidding-system');
-define('DB_USER', 'admin');
-define('DB_PASS', 'admin');
-define('DB_PORT', '5432');
+define('DB_NAME', 'marketplace_bidding');
+define('DB_USER', 'root');
+define('DB_PASS', '');
+define('DB_PORT', '3306');
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -11,10 +11,11 @@ if (session_status() === PHP_SESSION_NONE) {
 
 function getDBConnection() {
     try {
-        $dsn = "pgsql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME;
+        $dsn = "mysql:host=" . DB_HOST . ";port=" . DB_PORT . ";dbname=" . DB_NAME . ";charset=utf8mb4";
         $pdo = new PDO($dsn, DB_USER, DB_PASS);
         $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+        $pdo->setAttribute(PDO::ATTR_EMULATE_PREPARES, false);
         return $pdo;
     } catch (PDOException $e) {
         error_log("Database connection error: " . $e->getMessage());
