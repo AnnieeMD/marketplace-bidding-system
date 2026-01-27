@@ -1,25 +1,28 @@
 <?php
-// setup_database.php
-require_once 'config.php';
+
+header('Content-Type: application/json');
 
 try {
-    $pdo = getDBConnection();
-    
-    // SQL за създаване на таблица users
-    $sql = "CREATE TABLE IF NOT EXISTS users (
-        id SERIAL PRIMARY KEY,
-        full_name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) UNIQUE NOT NULL,
-        username VARCHAR(100) UNIQUE NOT NULL,
-        password VARCHAR(255) NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        last_login TIMESTAMP NULL
-    )";
-    
-    $pdo->exec($sql);
-    echo "Таблицата 'users' е създадена успешно!";
-    
-} catch(PDOException $e) {
-    echo "Грешка: " . $e->getMessage();
+    $pdo = new PDO("mysql:host=localhost;port=3306;charset=utf8mb4", 'root', '');
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS marketplace_bidding CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $pdo->exec("USE marketplace_bidding");
+
+    $sql = file_get_contents(__DIR__ . '/schema_mysql.sql');
+    $statements = explode(';', $sql);
+
+    foreach ($statements as $statement) {
+        $statement = trim($statement);
+        if (!empty($statement)) {
+            $pdo->exec($statement);
+        }
+    }
+
+    echo json_encode(['success' => true, 'message' => 'Database setup completed successfully!']);
+
+} catch (PDOException $e) {
+    http_response_code(500);
+    echo json_encode(['success' => false, 'message' => 'Database setup failed: ' . $e->getMessage()]);
 }
 ?>
