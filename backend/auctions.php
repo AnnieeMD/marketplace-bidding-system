@@ -29,13 +29,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
                            WHEN a.end_time < NOW() THEN 'ended'
                            ELSE a.status 
                        END as actual_status,
-                       EXTRACT(EPOCH FROM (a.end_time - NOW())) as time_remaining,
-                       EXTRACT(EPOCH FROM a.updated_at) as last_updated,
+                       TIMESTAMPDIFF(SECOND, NOW(), a.end_time) as time_remaining,
+                       UNIX_TIMESTAMP(a.updated_at) as last_updated,
                        (SELECT COUNT(*) FROM bids b WHERE b.auction_id = a.id) as total_bids,
                        (SELECT MAX(bid_amount) FROM bids b WHERE b.auction_id = a.id) as highest_bid
                 FROM auctions a 
                 LEFT JOIN users u ON a.user_id = u.id 
-                WHERE 1=1 AND a.end_time > NOW() - INTERVAL '1 day'";
+                WHERE 1=1 AND a.end_time > NOW() - INTERVAL 1 DAY";
         $params = [];
 
         if ($status === 'active') {
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
 
         if (!empty($search)) {
-            $sql .= " AND (a.title ILIKE ? OR a.description ILIKE ?)";
+            $sql .= " AND (LOWER(a.title) LIKE LOWER(?) OR LOWER(a.description) LIKE LOWER(?))";
             $searchTerm = "%{$search}%";
             $params[] = $searchTerm;
             $params[] = $searchTerm;
@@ -89,7 +89,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $auction['top_bidders'] = $topBiddersStmt->fetchAll(PDO::FETCH_ASSOC);
         }
 
-        $countSql = "SELECT COUNT(*) as total FROM auctions a WHERE 1=1 AND a.end_time > NOW() - INTERVAL '1 day'";
+        $countSql = "SELECT COUNT(*) as total FROM auctions a WHERE 1=1 AND a.end_time > NOW() - INTERVAL 1 DAY";
         $countParams = [];
         
         if ($status === 'active') {
@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
         
         if (!empty($search)) {
-            $countSql .= " AND (a.title ILIKE ? OR a.description ILIKE ?)";
+            $countSql .= " AND (a.title LIKE ? OR a.description LIKE ?)";
             $countParams[] = $searchTerm;
             $countParams[] = $searchTerm;
         }
@@ -217,7 +217,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         }
         
         if ($bidAmount <= 0) {
-            echo json_encode(['success' => false, 'message' => 'Наддавката трябва да бъде положително число!']);
+            echo json_encode(['success' => false, 'message' => 'Въведената сума трябва да бъде положително число!']);
             exit();
         }
         
@@ -252,7 +252,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             $minBid = $currentPrice + 1;
             
             if ($bidAmount <= $currentPrice) {
-                throw new Exception("Наддавката трябва да бъде по-висока от текущата цена ({$currentPrice} лв.)!");
+                throw new Exception("Въведената сума трябва да бъде по-висока от текущата цена ({$currentPrice} лв.)!");
+            }
+
+            if ($auction['buy_now_price'] !== null && $auction['buy_now_price'] > 0 && $bidAmount > $auction['buy_now_price']) {
+                throw new Exception("Въведената сума не може да бъде по-голяма от 'Купи сега' цената ({$auction['buy_now_price']} лв.)!");
             }
 
             $stmt = $pdo->prepare("INSERT INTO bids (auction_id, user_id, bid_amount, bid_time) VALUES (?, ?, ?, NOW())");
