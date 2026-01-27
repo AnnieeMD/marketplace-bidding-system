@@ -1,6 +1,6 @@
 <?php
 define('DB_HOST', 'localhost');
-define('DB_NAME', 'marketplace_bidding');
+define('DB_NAME', 'marketplace_bidding_system');
 define('DB_USER', 'root');
 define('DB_PASS', '');
 define('DB_PORT', '3306');

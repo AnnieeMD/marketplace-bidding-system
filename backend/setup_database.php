@@ -6,10 +6,10 @@ try {
     $pdo = new PDO("mysql:host=localhost;port=3306;charset=utf8mb4", 'root', '');
     $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS marketplace_bidding CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdo->exec("USE marketplace_bidding");
+    $pdo->exec("CREATE DATABASE IF NOT EXISTS marketplace_bidding_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
+    $pdo->exec("USE marketplace_bidding_system");
 
-    $sql = file_get_contents(__DIR__ . '/schema_mysql.sql');
+    $sql = file_get_contents(__DIR__ . '/schema.sql');
     $statements = explode(';', $sql);
 
     foreach ($statements as $statement) {
