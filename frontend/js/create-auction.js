@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         try {
-            const response = await fetch('/marketplace-bidding-system/backend/create_auction.php', {
+            const response = await fetch(`${BASE_URL}/backend/create_auction.php`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -52,7 +52,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (result.success) {
                 showToast('Успех!', result.message, 'success');
                 setTimeout(() => {
-                    window.location.href = '/marketplace-bidding-system/frontend/pages/index.html';
+                    window.location.href = `${BASE_URL}/frontend/pages/index.html`;
                 }, 2000);
             } else {
                 showToast('Грешка', result.message, 'error');
@@ -80,13 +80,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function checkUserSession() {
         try {
-            const response = await fetch('/marketplace-bidding-system/backend/check_session.php');
+            const response = await fetch(`${BASE_URL}/backend/check_session.php`);
             const data = await response.json();
             
             if (!data.logged_in) {
                 showToast('Неоторизиран достъп', 'Трябва да сте влезли в профила си, за да създавате търгове.', 'error');
                 setTimeout(() => {
-                    window.location.href = '/marketplace-bidding-system/frontend/pages/login.html';
+                    window.location.href = `${BASE_URL}/frontend/pages/login.html`;
                 }, 2000);
             }
         } catch (error) {

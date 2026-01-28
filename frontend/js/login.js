@@ -36,7 +36,7 @@ async function handleLogin() {
     loginBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Влизане...';
     
     try {
-        const response = await fetch('/marketplace-bidding-system/backend/login.php', {
+        const response = await fetch(`${BASE_URL}/backend/login.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -52,7 +52,7 @@ async function handleLogin() {
         if (data.success) {
             showMessage('loginMessage', 'Успешен вход! Пренасочване...', 'success');
             setTimeout(() => {
-                window.location.href = '/marketplace-bidding-system/frontend/pages/index.html';
+                window.location.href = `${BASE_URL}/frontend/pages/index.html`;
             }, 1500);
         } else {
             showMessage('loginMessage', data.message || 'Грешка при вход. Моля, опитайте отново.', 'error');
@@ -93,7 +93,7 @@ async function handleRegister() {
     registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Регистриране...';
     
     try {
-        const response = await fetch('/marketplace-bidding-system/backend/register.php', {
+        const response = await fetch(`${BASE_URL}/backend/register.php`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -111,7 +111,7 @@ async function handleRegister() {
         if (data.success) {
             showMessage('registerMessage', 'Успешна регистрация! Пренасочване...', 'success');
             setTimeout(() => {
-                window.location.href = '/marketplace-bidding-system/frontend/pages/index.html';
+                window.location.href = `${BASE_URL}/frontend/pages/index.html`;
             }, 1500);
         } else {
             showMessage('registerMessage', data.message || 'Грешка при регистрация. Моля, опитайте отново.', 'error');

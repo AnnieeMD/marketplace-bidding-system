@@ -1,5 +1,8 @@
 START TRANSACTION;
 
+CREATE DATABASE IF NOT EXISTS marketplace_bidding_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE marketplace_bidding_system;
+
 CREATE TABLE IF NOT EXISTS users (
                                      id INT AUTO_INCREMENT PRIMARY KEY,
                                      username VARCHAR(50) NOT NULL UNIQUE,
@@ -21,7 +24,7 @@ CREATE TABLE IF NOT EXISTS auctions (
     location VARCHAR(100),
     image_url VARCHAR(500),
     start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    end_time TIMESTAMP NOT NULL,
+    end_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     status VARCHAR(20) DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,

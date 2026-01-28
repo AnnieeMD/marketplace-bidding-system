@@ -2,12 +2,15 @@
 
 header('Content-Type: application/json');
 
-try {
-    $pdo = new PDO("mysql:host=localhost;port=3306;charset=utf8mb4", 'root', '');
-    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+require_once "config.php";
 
-    $pdo->exec("CREATE DATABASE IF NOT EXISTS marketplace_bidding_system CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
-    $pdo->exec("USE marketplace_bidding_system");
+try {
+    $pdo = new PDO(
+      "mysql:host=localhost;port=3306;charset=utf8mb4",
+      DB_USER,
+      DB_PASS
+    );
+    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
     $sql = file_get_contents(__DIR__ . '/schema.sql');
     $statements = explode(';', $sql);

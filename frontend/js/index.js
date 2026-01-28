@@ -72,7 +72,7 @@ document.getElementById('searchInput').addEventListener('keypress', (e) => {
 
 async function checkUserSession() {
     try {
-        const response = await fetch('/marketplace-bidding-system/backend/check_session.php');
+        const response = await fetch(`${BASE_URL}/backend/check_session.php`);
         const data = await response.json();
 
         const previousUser = currentUser;
@@ -103,7 +103,7 @@ async function checkUserSession() {
 async function loadAuctions(page = 1) {
     try {
         const offset = (page - 1) * auctionsPerPage;
-        let url = `/marketplace-bidding-system/backend/auctions.php?search=${encodeURIComponent(currentSearch)}&category=${encodeURIComponent(currentCategory)}&status=all&limit=${auctionsPerPage}&offset=${offset}`;
+        let url = `${BASE_URL}/backend/auctions.php?search=${encodeURIComponent(currentSearch)}&category=${encodeURIComponent(currentCategory)}&status=all&limit=${auctionsPerPage}&offset=${offset}`;
 
         if (currentPriceSort) {
             url += `&price_sort=${encodeURIComponent(currentPriceSort)}`;
@@ -317,7 +317,7 @@ async function placeBid(auctionId) {
     }
     
     try {
-        const response = await fetch('/marketplace-bidding-system/backend/auctions.php', {
+        const response = await fetch(`${BASE_URL}/backend/auctions.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ auction_id: auctionId, bid_amount: bidAmount })
@@ -348,7 +348,7 @@ async function buyNow(auctionId, price) {
     }
     
     try {
-        const response = await fetch('/marketplace-bidding-system/backend/auctions.php', {
+        const response = await fetch(`${BASE_URL}/backend/auctions.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
@@ -481,7 +481,7 @@ async function processEndedAuctions() {
     lastEndedAuctionsProcessed = now;
     
     try {
-        const response = await fetch('/marketplace-bidding-system/backend/end_auctions.php', {
+        const response = await fetch(`${BASE_URL}/backend/end_auctions.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' }
         });
@@ -507,7 +507,7 @@ async function checkForAuctionUpdates() {
     if (currentPage !== 1) return;
     
     try {
-        let url = `/marketplace-bidding-system/backend/auctions.php?search=${encodeURIComponent(currentSearch)}&category=${encodeURIComponent(currentCategory)}&status=all&limit=${auctionsPerPage}&offset=0`;
+        let url = `${BASE_URL}/backend/auctions.php?search=${encodeURIComponent(currentSearch)}&category=${encodeURIComponent(currentCategory)}&status=all&limit=${auctionsPerPage}&offset=0`;
 
         if (currentPriceSort) {
             url += `&price_sort=${encodeURIComponent(currentPriceSort)}`;
@@ -720,7 +720,7 @@ function showAuctionDetails(auctionId) {
 
 async function showAuctionResults(auctionId) {
     try {
-        const response = await fetch(`/marketplace-bidding-system/backend/auction_results.php?auction_id=${auctionId}`);
+        const response = await fetch(`${BASE_URL}/backend/auction_results.php?auction_id=${auctionId}`);
         const data = await response.json();
         
         if (!data.success) {
@@ -833,7 +833,7 @@ async function showMyProfile() {
     }
     
     try {
-        const response = await fetch('/marketplace-bidding-system/backend/user_profile.php');
+        const response = await fetch(`${BASE_URL}/backend/user_profile.php`);
         const data = await response.json();
         
         if (!data.success) {
@@ -1022,7 +1022,7 @@ function placeBidFromModal(auctionId) {
         return;
     }
 
-    fetch('/marketplace-bidding-system/backend/auctions.php', {
+    fetch(`${BASE_URL}/backend/auctions.php`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ auction_id: auctionId, bid_amount: bidAmount })
@@ -1061,7 +1061,7 @@ async function deleteAuction(auctionId) {
     }
 
     try {
-        const response = await fetch('/marketplace-bidding-system/backend/delete_auction.php', {
+        const response = await fetch(`${BASE_URL}/backend/delete_auction.php`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ auction_id: auctionId })
@@ -1083,13 +1083,13 @@ async function deleteAuction(auctionId) {
 
 document.getElementById('loginLink').addEventListener('click', (e) => {
     e.preventDefault();
-    window.location.href = '/marketplace-bidding-system/frontend/pages/login.html';
+    window.location.href = `${BASE_URL}/frontend/pages/login.html`;
 });
 
 document.getElementById('logoutLink').addEventListener('click', async (e) => {
     e.preventDefault();
     try {
-        await fetch('/marketplace-bidding-system/backend/logout.php');
+        await fetch(`${BASE_URL}/backend/logout.php`);
         window.location.reload();
     } catch (error) { console.error('Logout error:', error); }
 });
